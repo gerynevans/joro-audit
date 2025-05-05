@@ -6,15 +6,18 @@
   <style>
     /* ---------- LAYOUT ---------- */
     .container{width:75%;margin:0 auto 4rem;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#222;font-size:16px;line-height:1.6}
-    @media(max-width:768px){.container{width:90%}}    
+    @media(max-width:768px){.container{width:90%}}
 
     /* ---------- HEADINGS ---------- */
     .form-group{margin-bottom:2rem}
     .audit-heading{display:flex;align-items:center;margin-bottom:1rem}
     .audit-heading img{width:90px;margin-right:12px}
     .audit-label{display:flex;flex-direction:column;text-transform:uppercase;font-weight:bold;line-height:1.2}
-    .audit-label span:first-child{font-size:1rem}.audit-label span:last-child{font-size:1.25rem;color:#000}
-    .label-lite span:first-child{color:#f67e6f}.label-mid span:first-child{color:#f5b354}.label-deep span:first-child{color:#7fc197}
+    .audit-label span:first-child{font-size:1rem}
+    .audit-label span:last-child{font-size:1.25rem;color:#000}
+    .label-lite  span:first-child{color:#f67e6f}
+    .label-mid   span:first-child{color:#f5b354}
+    .label-deep  span:first-child{color:#7fc197}
 
     /* ---------- INPUTS ---------- */
     input[type=text]{width:100%;padding:12px;font-size:1rem;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;margin-bottom:1rem}
@@ -62,7 +65,7 @@
     <span id="websiteTick" class="tick-icon">✓</span>
   </div>
 
-  <!-- ──────────────── MID-LEVEL ────────────────── -->
+  <!-- ──────────────── MID-LEVEL ───────────────── -->
   <div class="form-group">
     <div class="audit-heading">
       <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78cba62e30c8ac63059/1743447948943/Mid+level+audit2.png" alt="Mid">
@@ -74,23 +77,23 @@
     </label>
   </div>
 
-  <!-- ──────────────── DEEP DIVE ────────────────── -->
+  <!-- ──────────────── DEEP DIVE ──────────────── -->
   <div class="form-group">
     <div class="audit-heading">
       <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78c150c986d30980ed1/1743447948987/Deep+dive+audit2.png" alt="Deep">
       <div class="audit-label label-deep"><span>Deep Dive</span><span>Audit</span></div>
     </div>
-    <p>Upload supporting documents – brochures, supplier contracts, etc.</p>
+    <p>Upload supporting documents — brochures, supplier contracts, etc.</p>
     <label class="upload-btn">Upload
       <input type="file" id="deepDive" multiple>
     </label>
   </div>
 
-  <!-- ──────────────── ACTION BUTTONS ───────────── -->
+  <!-- ──────────────── ACTIONS ─────────────────── -->
   <button id="startAuditBtn" class="start-audit-btn">Start Audit</button>
   <a id="viewAuditBtn" class="view-audit-btn" target="_blank">View Audit</a>
 
-  <!-- ──────────────── FILE LIST ────────────────── -->
+  <!-- ──────────────── FILE LIST ───────────────── -->
   <div class="file-section">
     <h3>Uploaded Files</h3>
     <table>
@@ -113,7 +116,7 @@ const fileTableBody  = document.getElementById('fileTableBody');
 
 /* ---------- STATE ---------- */
 let websiteConfirmed = false;
-let uploadedFileIds  = [];          // IDs returned by /api/upload-file
+let uploadedFileIds  = [];      // IDs returned by /api/upload-file
 
 /* ---------- HELPERS ---------- */
 function addRow(name){
@@ -142,6 +145,12 @@ confirmBtn.addEventListener('click',async ()=>{
   }
 });
 
+/* reset tick if the user edits the URL again */
+websiteInput.addEventListener('input',()=>{
+  websiteConfirmed = false;
+  websiteTick.style.visibility='hidden';
+});
+
 /* ---------- FILE UPLOAD ---------- */
 async function handleFiles(inputEl,category){
   for(const file of inputEl.files){
@@ -160,7 +169,7 @@ async function handleFiles(inputEl,category){
     }
   }
 }
-midInput .addEventListener('change',()=>handleFiles(midInput,'mid'));
+midInput.addEventListener('change',()=>handleFiles(midInput ,'mid'));
 deepInput.addEventListener('change',()=>handleFiles(deepInput,'deep'));
 
 /* ---------- START AUDIT ---------- */
@@ -171,9 +180,9 @@ startBtn.addEventListener('click',async ()=>{
   try{
     const data = await postJSON('/api/generate-audit',{
       website:websiteInput.value.trim(),
-      files  :uploadedFileIds
+      files  :uploadedFileIds          // may be []
     });
-    const html = data.html||'<h1>Empty response</h1>';
+    const html = data.html||'<h1>No content returned</h1>';
 
     /* open report in new tab */
     const blob = new Blob([html],{type:'text/html'});
@@ -181,7 +190,7 @@ startBtn.addEventListener('click',async ()=>{
     viewBtn.href=url;
     viewBtn.style.display='inline-block';
     startBtn.style.display='none';
-    viewBtn.click();               // auto-open
+    viewBtn.click();                  // auto-open
   }catch(err){
     alert('Audit generation failed:\n'+err.message);
   }finally{
