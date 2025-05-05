@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Joro – Insurance Audit</title>
+  <style>
+    /* ---------- LAYOUT ---------- */
+    .container{width:75%;margin:0 auto 4rem;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#222;font-size:16px;line-height:1.6}
+    @media(max-width:768px){.container{width:90%}}    
+
+    /* ---------- HEADINGS ---------- */
+    .form-group{margin-bottom:2rem}
+    .audit-heading{display:flex;align-items:center;margin-bottom:1rem}
+    .audit-heading img{width:90px;margin-right:12px}
+    .audit-label{display:flex;flex-direction:column;text-transform:uppercase;font-weight:bold;line-height:1.2}
+    .audit-label span:first-child{font-size:1rem}.audit-label span:last-child{font-size:1.25rem;color:#000}
+    .label-lite span:first-child{color:#f67e6f}.label-mid span:first-child{color:#f5b354}.label-deep span:first-child{color:#7fc197}
+
+    /* ---------- INPUTS ---------- */
+    input[type=text]{width:100%;padding:12px;font-size:1rem;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;margin-bottom:1rem}
+
+    /* ---------- BUTTONS ---------- */
+    .btn{display:inline-block;padding:10px 20px;font-size:.875rem;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;transition:.3s}
+    .upload-btn{background:#000;color:#fff;position:relative;margin-right:1rem}
+    .upload-btn:hover{background:#333}
+    .upload-btn input[type=file]{position:absolute;left:0;top:0;opacity:0;height:100%;width:100%;cursor:pointer}
+
+    .confirm-btn{background:#72AEE6;color:#fff;margin-bottom:1rem}
+    .confirm-btn:hover{background:#539ad6}
+
+    .start-audit-btn{background:#709fcc;color:#fff;padding:12px 20px;font-size:1rem;margin-top:1.5rem}
+    .start-audit-btn:hover{background:#5c8ab8}
+    .start-audit-btn.loading{pointer-events:none}
+    .start-audit-btn.loading::after{content:'';display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #fff;border-top-color:transparent;animation:spin .6s linear infinite;margin-left:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .view-audit-btn{display:none;background:#4fb57d;color:#fff;padding:12px 20px;font-size:1rem;border:none;border-radius:4px;text-transform:uppercase;text-decoration:none;margin-top:1.5rem}
+    .view-audit-btn:hover{background:#40a169}
+
+    /* ---------- TICK ---------- */
+    .tick-icon{color:green;font-size:1.2rem;margin-left:6px;visibility:hidden}
+
+    /* ---------- FILE TABLE ---------- */
+    .file-section{margin-top:3rem}
+    .file-section h3{font-size:1.125rem;font-weight:600;color:#5c7da6;margin-bottom:1rem}
+    table{width:100%;border-collapse:collapse;margin-top:1rem}
+    th,td{text-align:left;padding:12px;border:1px solid #ddd}
+    th{background:#f5f5f5;font-weight:600}
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- ──────────────── LITE AUDIT ──────────────── -->
+  <div class="form-group">
+    <div class="audit-heading">
+      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78cb5970c5a5f271053/1743447948958/Lite+audit2.png" alt="Lite">
+      <div class="audit-label label-lite"><span>Lite</span><span>Audit</span></div>
+    </div>
+
+    <input type="text" id="companyWebsite" placeholder="Enter your company website">
+    <button id="confirmWebsiteBtn" class="btn confirm-btn">Confirm Website</button>
+    <span id="websiteTick" class="tick-icon">✓</span>
+  </div>
+
+  <!-- ──────────────── MID-LEVEL ────────────────── -->
+  <div class="form-group">
+    <div class="audit-heading">
+      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78cba62e30c8ac63059/1743447948943/Mid+level+audit2.png" alt="Mid">
+      <div class="audit-label label-mid"><span>Mid-Level</span><span>Audit</span></div>
+    </div>
+    <p>Upload existing insurance documents for our mid-level audit.</p>
+    <label class="upload-btn">Upload
+      <input type="file" id="midLevel" multiple>
+    </label>
+  </div>
+
+  <!-- ──────────────── DEEP DIVE ────────────────── -->
+  <div class="form-group">
+    <div class="audit-heading">
+      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78c150c986d30980ed1/1743447948987/Deep+dive+audit2.png" alt="Deep">
+      <div class="audit-label label-deep"><span>Deep Dive</span><span>Audit</span></div>
+    </div>
+    <p>Upload supporting documents – brochures, supplier contracts, etc.</p>
+    <label class="upload-btn">Upload
+      <input type="file" id="deepDive" multiple>
+    </label>
+  </div>
+
+  <!-- ──────────────── ACTION BUTTONS ───────────── -->
+  <button id="startAuditBtn" class="start-audit-btn">Start Audit</button>
+  <a id="viewAuditBtn" class="view-audit-btn" target="_blank">View Audit</a>
+
+  <!-- ──────────────── FILE LIST ────────────────── -->
+  <div class="file-section">
+    <h3>Uploaded Files</h3>
+    <table>
+      <thead><tr><th>File Name</th><th>Status</th></tr></thead>
+      <tbody id="fileTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ---------- ELEMENTS ---------- */
+const websiteInput   = document.getElementById('companyWebsite');
+const confirmBtn     = document.getElementById('confirmWebsiteBtn');
+const websiteTick    = document.getElementById('websiteTick');
+const midInput       = document.getElementById('midLevel');
+const deepInput      = document.getElementById('deepDive');
+const startBtn       = document.getElementById('startAuditBtn');
+const viewBtn        = document.getElementById('viewAuditBtn');
+const fileTableBody  = document.getElementById('fileTableBody');
+
+/* ---------- STATE ---------- */
+let websiteConfirmed = false;
+let uploadedFileIds  = [];          // IDs returned by /api/upload-file
+
+/* ---------- HELPERS ---------- */
+function addRow(name){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${name}</td><td><span class="tick-icon">✓</span></td>`;
+  fileTableBody.appendChild(tr);
+}
+async function postJSON(url,obj){
+  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+/* ---------- CONFIRM WEBSITE ---------- */
+confirmBtn.addEventListener('click',async ()=>{
+  const url = websiteInput.value.trim();
+  websiteTick.style.visibility='hidden';
+  if(!url){alert('Enter a website first'); return;}
+
+  try{
+    await postJSON('/api/analyse-website',{website:url});
+    websiteConfirmed = true;
+    websiteTick.style.visibility='visible';
+  }catch(err){
+    alert('Server error analysing website:\n'+err.message);
+  }
+});
+
+/* ---------- FILE UPLOAD ---------- */
+async function handleFiles(inputEl,category){
+  for(const file of inputEl.files){
+    const fd = new FormData();
+    fd.append('file',file);
+    fd.append('category',category);
+
+    try{
+      const r = await fetch('/api/upload-file',{method:'POST',body:fd});
+      if(!r.ok) throw new Error(await r.text());
+      const {id,filename}=await r.json();
+      uploadedFileIds.push(id);
+      addRow(filename||file.name);
+    }catch(err){
+      alert(`Upload failed for ${file.name}:\n`+err.message);
+    }
+  }
+}
+midInput .addEventListener('change',()=>handleFiles(midInput,'mid'));
+deepInput.addEventListener('change',()=>handleFiles(deepInput,'deep'));
+
+/* ---------- START AUDIT ---------- */
+startBtn.addEventListener('click',async ()=>{
+  if(!websiteConfirmed){alert('Please confirm website first');return;}
+  startBtn.classList.add('loading');
+
+  try{
+    const data = await postJSON('/api/generate-audit',{
+      website:websiteInput.value.trim(),
+      files  :uploadedFileIds
+    });
+    const html = data.html||'<h1>Empty response</h1>';
+
+    /* open report in new tab */
+    const blob = new Blob([html],{type:'text/html'});
+    const url  = URL.createObjectURL(blob);
+    viewBtn.href=url;
+    viewBtn.style.display='inline-block';
+    startBtn.style.display='none';
+    viewBtn.click();               // auto-open
+  }catch(err){
+    alert('Audit generation failed:\n'+err.message);
+  }finally{
+    startBtn.classList.remove('loading');
+  }
+});
+</script>
+</body>
+</html>
