@@ -1,106 +1,112 @@
-# --- app.py — API-only backend using ChatGPT-o3 ---------------------------
-import os, json, requests
-from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(find_dotenv())                              # reads .env
-import openai
-openai.api_key = os.getenv("OPENAI_API_KEY")            # <-- your key
-
-from flask import Flask, request, jsonify
+# app.py  ── complete replacement
+import os, uuid, tempfile, pathlib, requests
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import openai
 
-# -------------------------------------------------------------------------
-#  Flask / CORS setup
-# -------------------------------------------------------------------------
-app = Flask(__name__)
-CORS(app)                                               # allow all origins
-BASE_DIR = Path(__file__).resolve().parent
+# ─────────────────────────────── ENV & SET-UP
+load_dotenv()                                   # reads .env
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# -------------------------------------------------------------------------
-#  0. Health check
-# -------------------------------------------------------------------------
-@app.route("/ping")
-def ping():
-    return "pong", 200
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+app = Flask(__name__, static_folder=str(BASE_DIR / "static"))
+CORS(app)                                       # allow calls from Squarespace
 
-# -------------------------------------------------------------------------
-#  1. Lite audit – analyse a public website URL
-# -------------------------------------------------------------------------
-@app.route("/analyse_website", methods=["POST"])
+# ─────────────────────────────── HELPERS
+TMP_DIR = pathlib.Path(tempfile.gettempdir()) / "joro_uploads"
+TMP_DIR.mkdir(exist_ok=True)
+
+def short_id() -> str:
+    return uuid.uuid4().hex[:12]
+
+# ─────────────────────────────── STATIC
+@app.route("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
+
+# ─────────────────────────────── API
+@app.route("/api/analyse-website", methods=["POST"])
 def analyse_website():
-    data   = request.get_json(force=True)
-    site   = data.get("website", "").strip()
-    if not site:
-        return jsonify(error="website missing"), 400
+    """Quickly analyse the public website and return a one-paragraph summary."""
+    website = request.json.get("website", "").strip()
+    if not website:
+        return jsonify(error="no website provided"), 400
+
+    # fetch the page
+    try:
+        r = requests.get(website, timeout=10,
+                         headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+    except Exception as e:
+        return jsonify(error=f"failed to fetch website: {e}"), 500
+
+    # crude text extraction (first 4 kB for token budget)
+    text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:4000]
+
+    prompt = f"""Summarise the key products / services and insurance-relevant
+    details you can infer from **{website}** in one concise paragraph.
+
+    Extracted text (truncated):
+    {text}
+    """
 
     try:
-        html = requests.get(site, timeout=10).text[:5000]   # first 5 kB
+        resp = openai.ChatCompletion.create(
+            model="o3-chat-completion",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=256,
+        )
+        summary = resp.choices[0].message.content.strip()
     except Exception as e:
-        return jsonify(error=f"unable to fetch: {e}"), 400
+        return jsonify(error=f"OpenAI error: {e}"), 500
 
-    prompt = f"""Act as an expert insurance broker. Summarise what you learn
-about {site} from this HTML:
-```{html}```"""
-    res = openai.chat.completions.create(
-        model="o3-chat-completion",                       # ← ChatGPT o3
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3
-    )
-    summary = res.choices[0].message.content.strip()
-    return jsonify(summary=summary), 200
+    return jsonify(ok=True, summary=summary)
 
-# -------------------------------------------------------------------------
-#  2. File upload – for Mid / Deep audits
-# -------------------------------------------------------------------------
-UPLOAD_DIR = "/tmp"
-@app.route("/upload", methods=["POST"])
-def upload():
-    files = request.files.getlist("file")
-    if not files:
-        return jsonify(error="no files"), 400
+@app.route("/api/upload-file", methods=["POST"])
+def upload_file():
+    """Accept a single file, save it to /tmp, return an ID."""
+    f = request.files.get("file")
+    if not f:
+        return jsonify(error="no file"), 400
 
-    saved = []
-    for f in files:
-        path = os.path.join(UPLOAD_DIR, f.filename)
-        f.save(path)
-        saved.append(path)
-    return jsonify(files=saved), 200
+    fid = short_id()
+    path = TMP_DIR / f"{fid}_{f.filename}"
+    f.save(path)
 
-# -------------------------------------------------------------------------
-#  3. Generate the full audit
-# -------------------------------------------------------------------------
-@app.route("/generate_audit", methods=["POST"])
+    return jsonify(id=fid, filename=f.filename)
+
+@app.route("/api/generate-audit", methods=["POST"])
 def generate_audit():
-    data    = request.get_json(force=True)
-    website = data.get("website", "").strip()
-    extras  = data.get("extras", [])          # paths returned by /upload
+    """Generate the full HTML audit (website + optional file IDs)."""
+    data      = request.get_json(force=True)
+    website   = data.get("website", "").strip()
+    file_ids  = data.get("files", [])          # may be []
 
-    big_prompt = f"""
-{website=}
-{extras=}
+    prompt = f"""
+Act as an expert commercial-insurance broker.  Prepare a risk-audit report for
+the organisation behind **{website}**.  If any uploaded documents are provided
+(refer to them by filename), incorporate relevant details.
 
-Act as an expert insurance broker and business advisor (30 years experience).
-Produce a concise HTML insurance audit covering:
-1. Overview
-2. Coverage table
-3. Red flags & real-life scenarios
-4. Recommended tests / certificates
-5. Benefits of additional steps
+Uploaded-file IDs: {file_ids}
 
-Return only valid HTML.
+Return a fully-formatted **HTML** report that includes:
+• An executive summary  
+• A table recommending cover types & limits  
+• Actionable improvement suggestions
 """
-    res = openai.chat.completions.create(
-        model="o3-chat-completion",                       # ← ChatGPT o3
-        messages=[{"role": "user", "content": big_prompt}],
-        temperature=0.3,
-        max_tokens=2048
-    )
-    audit_html = res.choices[0].message.content.strip()
-    return jsonify(audit=audit_html), 200
 
-# -------------------------------------------------------------------------
-#  Local run / Render entry-point
-# -------------------------------------------------------------------------
+    resp = openai.ChatCompletion.create(
+        model="o3-chat-completion",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=2048,
+    )
+    html = resp.choices[0].message.content
+    return jsonify(html=html)
+
+# ─────────────────────────────── LOCAL DEV
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug
