@@ -37,7 +37,7 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
     try:
         print(f"Sending request to Claude API with prompt length: {len(prompt)}")
         message = client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model="claude-3-sonnet-20240307",  # Updated to a more current model version
             max_tokens=max_tokens,
             temperature=temperature,
             messages=[
