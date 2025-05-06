@@ -100,50 +100,157 @@ that follows the JORO framework below.
 
 ━━━━━━━━━━  STYLE BLOCK  ━━━━━━━━━━
 <style>
-    body {{
+    body {
         font-family: 'Segoe UI', Arial, sans-serif;
         line-height: 1.6;
         color: #333;
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
-    }}
+    }
     
-    h1, h2, h3, h4 {{
+    h1, h2, h3, h4 {
         color: #3a5a7c;
         margin-top: 1.5em;
-    }}
+    }
     
-    h1 {{
+    h1 {
         font-size: 28px;
         text-align: center;
         margin-bottom: 5px;
-    }}
+    }
     
-    h2 {{
+    h2 {
         font-size: 24px;
         border-bottom: 2px solid #709fcc;
         padding-bottom: 10px;
-    }}
+    }
     
-    h3 {{
+    h3 {
         font-size: 20px;
         display: flex;
         align-items: center;
-    }}
+    }
     
-    h3 img {{
+    h3 img {
         height: 24px;
         margin-right: 10px;
-    }}
+    }
     
-    table {{
+    table {
         width: 100%;
         border-collapse: collapse;
         margin: 20px 0;
-    }}
+    }
     
-    th {{
+    th {
         background-color: #709fcc;
         color: white;
         padding: 10px;
+        text-align: left;
+    }
+    
+    td {
+        padding: 10px;
+        border: 1px solid #ddd;
+    }
+    
+    tr:nth-child(even) {
+        background-color: #f2f7fd;
+    }
+    
+    .highlight-green {
+        color: #4fb57d;
+        font-weight: bold;
+    }
+    
+    .highlight-orange {
+        color: #f49547;
+        font-weight: bold;
+    }
+    
+    .highlight-red {
+        color: #ef6460;
+        font-weight: bold;
+    }
+    
+    .highlight-deep-red {
+        color: #B22222;
+        font-weight: bold;
+    }
+    
+    .metadata {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .metadata p {
+        margin: 5px 0;
+    }
+    
+    .pref-button-group {
+        display: flex;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    
+    .pref-btn {
+        padding: 5px 15px;
+        border-radius: 20px;
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .btn-essential {
+        background-color: #4fb57d;
+    }
+    
+    .btn-interested {
+        background-color: #f49547;
+    }
+    
+    .btn-notInterested {
+        background-color: #ef6460;
+    }
+    
+    .btn-unselected {
+        opacity: 0.6;
+    }
+    
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 15px;
+    }
+</style>
+
+<script>
+    // Add event listeners to all preference buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const prefButtons = document.querySelectorAll('.pref-btn');
+        
+        prefButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Find the button group
+                const group = this.closest('.pref-button-group');
+                
+                // Remove 'selected' class from all buttons in the group
+                group.querySelectorAll('.pref-btn').forEach(btn => {
+                    btn.classList.add('btn-unselected');
+                    // Remove check mark
+                    btn.textContent = btn.textContent.replace(' ✓', '');
+                });
+                
+                // Add 'selected' to the clicked button
+                this.classList.remove('btn-unselected');
+                // Add check mark
+                if (!this.textContent.includes('✓')) {
+                    this.textContent += ' ✓';
+                }
+            });
+        });
+    });
+</script>
+"""
