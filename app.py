@@ -1,21 +1,12 @@
 # app.py  ──────────────────────────────────────────────────────────
-"""
-Lightweight Flask + OpenAI service for the Joro audit front-end.
-
-• / serves static/index.html
-• POST /api/analyse-website   – crawl & summarise the site
-• POST /api/upload-file       – accept docs, return short IDs
-• POST /api/generate-audit    – call GPT-4o, return full HTML audit
--------------------------------------------------------------------
-"""
 import os, uuid, tempfile, pathlib, datetime, requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import openai                             # 0.28.1 pinned in requirements.txt
+import openai                                   # 0.28.1 pinned
 
-# ─────────────────────── ENV & APP SET-UP
+# ────────── ENV / PATHS
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -24,74 +15,34 @@ TMP_DIR  = pathlib.Path(tempfile.gettempdir()) / "joro_uploads"
 TMP_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__, static_folder=str(BASE_DIR / "static"))
-CORS(app)                                 # allow Squarespace origin
+CORS(app)
 
-# ─────────────────────── CONSTANTS
 def short_id() -> str:
     return uuid.uuid4().hex[:12]
 
-# !!  Paste the *beginning* of your original styled report below.
-#    The model only needs the header / CSS and the first section
-#    (a few kB is enough for style cues).  Trim if you like.
-EXAMPLE_HTML = r"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Joro High Level Insurance Review &amp; Recommendations</title>
-  <style>
-    /* Global Styles – let your site CSS control fonts/colors */
-    body { margin: 20px; line-height: 1.6; font-family: inherit; color: inherit; }
-    h1,h2,h3,h4,h5 { margin-top: 1.2em; margin-bottom: 0.6em; font-weight: inherit; color: inherit; }
-    p, ul, ol, table { margin-bottom: 1em; }
-    ul, ol { padding-left: 20px; }
-    /* Heading Icon */
-    .heading-icon { width: 48px; vertical-align: middle; margin-right: 8px; }
-    /* Table styles …  (cut for brevity) */
-  </style>
-</head>
-<body>
-  <h3>Joro High Level Insurance Review &amp; Recommendations</h3>
-  <p><strong>Prepared by:</strong> JORO<br>
-     <strong>For:</strong> Example Ltd<br>
-     <strong>Date:</strong> 01 Jan 2025</p>
-  <!-- … you can stop here if the rest is huge … -->
-</body>
-</html>
-"""
-
-# ─────────────────────── STATIC FILES
+# ────────── serve front-end
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
 
-
-# ─────────────────────── API ENDPOINTS
+# ────────── helper – tiny site summary
 @app.post("/api/analyse-website")
 def analyse_website():
     website = request.json.get("website", "").strip()
     if not website:
         return jsonify(error="no website provided"), 400
-
-    # fetch home page
     try:
-        r = requests.get(
-            website, timeout=10,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; JoroAudit/1.0)"}
-        )
+        r = requests.get(website, timeout=10,
+                         headers={"User-Agent": "Mozilla/5.0 (JoroAudit/1.0)"})
         r.raise_for_status()
     except Exception as exc:
         return jsonify(error=f"failed to fetch website: {exc}"), 500
 
-    # crude text extraction (first ~4 kB)
     text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:4000]
-
     prompt = (
-        f"Summarise the key products, services and any insurance-relevant clues "
-        f"you can infer from **{website}** in one concise paragraph.\n\n"
-        f"EXTRACTED TEXT (truncated):\n{text}"
+        f"Summarise the business activities found on **{website}** in one "
+        f"concise paragraph.  Extracted text (truncated):\n{text}"
     )
-
     try:
         resp = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -99,69 +50,84 @@ def analyse_website():
             temperature=0.3,
             max_tokens=256,
         )
-        summary = resp.choices[0].message.content.strip()
+        return jsonify(ok=True, summary=resp.choices[0].message.content.strip())
     except Exception as exc:
         return jsonify(error=f"OpenAI error: {exc}"), 500
 
-    return jsonify(ok=True, summary=summary)
-
-
+# ────────── file upload
 @app.post("/api/upload-file")
 def upload_file():
     f = request.files.get("file")
     if not f:
         return jsonify(error="no file"), 400
-
-    fid  = short_id()
-    path = TMP_DIR / f"{fid}_{f.filename}"
-    f.save(path)
-
+    fid = short_id()
+    f.save(TMP_DIR / f"{fid}_{f.filename}")
     return jsonify(id=fid, filename=f.filename)
 
-
+# ────────── big report
 @app.post("/api/generate-audit")
 def generate_audit():
     data     = request.get_json(force=True)
     website  = data.get("website", "").strip()
-    file_ids = data.get("files", [])
+    file_ids = data.get("files", [])            # may be []
+    today    = datetime.date.today().strftime("%d %B %Y")
 
-    today = datetime.date.today().strftime("%d %b %Y")
+    PROMPT = f"""
+You are an expert UK commercial-insurance broker and business advisor with 30+
+years’ experience.  Produce a **single, stand-alone HTML document** – DO NOT wrap
+it in ``` fences – following the exact 5-section flow below and matching the
+polished styling used by JORO (fonts/colors defined by the receiving CSS).
 
-    prompt = f"""
-You are an experienced UK commercial-insurance broker.
+Use British spelling (£), insert **Date: {today}**, and treat the organisation
+name exactly as it appears on {website}.  If uploaded document IDs are present
+({file_ids}), reference them where relevant.
 
-Produce a **complete, stand-alone HTML file** (including <html>, <head> with
-inline CSS, and <body>).  Match the look & feel of the example report that
-follows the delimiter.
+━━━━━━━━━━  REQUIRED REPORT STRUCTURE  ━━━━━━━━━━
+1  Overview  
+   • Summarise current policies (Public/Product Liability, Stock & Contents,
+     Employers’ Liability, Business Interruption, etc.).  
+   • Plain language – no “plain-English” label, no jargon.
 
-Requirements
-• Use the organisation’s name exactly as it appears on {website}.
-• Use GBP symbols (£) and British spelling.
-• Include: Executive summary, a coverage recommendations table, and 3–5
-  actionable suggestions.
-• Mention any uploaded document IDs if given: {file_ids!r}
-• Insert today’s date like “Date: {today}”.
-• Keep it under ~200 kB total.
+2  Coverage Table  
+   • Columns: Coverage Type | Category (Essential / Peace-of-Mind /
+     Optional) | Client Claim Scenarios | How to Claim (timeline & cost).  
+   • Incorporate existing premiums & insurers from uploaded docs.
 
-──────────────────────── EXAMPLE REPORT ────────────────
-{EXAMPLE_HTML}
-────────────────────────────────────────────────────────
+3  Red Flags & Real-Life Scenarios  
+   • Identify gaps (missing tests, expired policies, exclusions).  
+   • Provide ACTUAL documented winning & losing claim examples in this sector
+     (cite what made them succeed/fail, time & cost impact).
+
+4  Recommended Tests & Certificates by Product Category  
+   • Map each product category to standards/certs (ISO, BS EN, CE, REACH …).  
+   • Add indicative premium-reduction percentages (e.g. 5-10 %).  
+
+5  Benefits of Additional Steps  
+   • Show financial savings, risk reduction, long-term insurer confidence.  
+   • Connect every benefit back to the client and insurer.
+
+━━━━━━━━━━  STYLE & FORMAT  ━━━━━━━━━━
+• Headings <h3>/<h4>; body text <p>, <ul>, <table>.  
+• Re-use JORO colour palette (#709fcc header rows, #4fb57d buttons, etc.).  
+• Tables with <thead>, <tbody>; no inline JS other than minimal button logic
+  if you wish.  
+• Keep total <= 200 kB.
+
+Return ONLY valid HTML – **no markdown back-ticks**, no commentary.
 """
 
     try:
         resp = openai.ChatCompletion.create(
             model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": PROMPT}],
             temperature=0.4,
             max_tokens=2048,
         )
         html = resp.choices[0].message.content
+        return jsonify(html=html)
     except Exception as exc:
         return jsonify(error=f"OpenAI error: {exc}"), 500
 
-    return jsonify(html=html)
-
-
-# ─────────────────────── LOCAL DEV CONVENIENCE
+# ────────── local dev
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8000)
