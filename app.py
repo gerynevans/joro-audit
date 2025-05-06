@@ -1,14 +1,13 @@
 # app.py  ──────────────────────────────────────────────────────────
-import os, uuid, tempfile, pathlib, datetime, requests
+import os, uuid, tempfile, pathlib, datetime, requests, json
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from openai import OpenAI                       # Updated import
 
 # ────────── ENV / PATHS
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Updated client initialization
+CLAUDE_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent
 TMP_DIR  = pathlib.Path(tempfile.gettempdir()) / "joro_uploads"
@@ -28,6 +27,34 @@ def after_request(response):
 
 def short_id() -> str:
     return uuid.uuid4().hex[:12]
+
+# ────────── Claude API integration
+def call_claude(prompt, temperature=0.3, max_tokens=4000):
+    """Call Claude API with the provided prompt"""
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": CLAUDE_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+    data = {
+        "model": "claude-3-7-sonnet-20240620",
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        return response.json()["content"][0]["text"]
+    except Exception as e:
+        print(f"Claude API error: {e}")
+        if response and hasattr(response, 'text'):
+            print(f"Response text: {response.text}")
+        raise
 
 # ────────── serve front-end
 @app.route("/")
@@ -86,26 +113,28 @@ def analyse_website():
         print(f"Text extraction error: {exc}")
         return jsonify(error=f"Failed to parse website content: {exc}"), 500
 
-    # Define the prompt directly
-    prompt = (
-        f"Summarise the business activities found on **{website}** in one "
-        f"concise paragraph.  Extracted text (truncated):\n{text}"
-    )
+    # Define the prompt for Claude
+    prompt = f"""
+    Analyze the business activities found on **{website}** based on the extracted text.
+    
+    Provide a concise summary (max 100 words) that includes:
+    1. The industry/sector
+    2. Main business activities
+    3. Products or services offered
+    4. Notable insurance-relevant risks for this type of business
+    
+    Extracted text (truncated):
+    {text}
+    """
     
     try:
-        # Updated API call
-        resp = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=256,
-        )
-        summary = resp.choices[0].message.content.strip()
+        # Call Claude API
+        summary = call_claude(prompt, temperature=0.3, max_tokens=500)
         print(f"Successfully generated summary: {summary[:50]}...")
         return jsonify(ok=True, summary=summary)
     except Exception as exc:
-        print(f"OpenAI Error: {exc}")
-        return jsonify(error=f"OpenAI error: {exc}"), 500
+        print(f"Claude API Error: {exc}")
+        return jsonify(error=f"Claude API error: {exc}"), 500
 
 # ────────── handle OPTIONS requests for CORS preflight
 @app.route('/api/analyse-website', methods=['OPTIONS'])
@@ -151,205 +180,107 @@ def generate_audit():
     
     print(f"Generating audit for website: {website} with file IDs: {file_ids}")
     
-    # Define the enhanced prompt directly
-    PROMPT = f"""You are an expert UK commercial-insurance broker and business
-advisor (30+ years). Produce a **single, stand-alone HTML document** – NO ``` –
-that follows **exactly** the visual framework JORO provided.
-
-━━━━━━━━━━  DESIGN REQUIREMENTS  ━━━━━━━━━━
-• Inject the full <style> block shown below (adjust colours/widths only if
-  necessary for readability).  
-• Use the SAME heading-icon URLs:  
-  • magnifying glass → …/Icon+-+magnifying+glass.png  
-  • coverage table  → …/Icon+-+Coverage+table.png  
-  • red flag        → …/Icon+-+red+flag.png  
-  • test certs      → …/Icon+-+test+certificates.png  
-  • benefits        → …/Icon+-+benefits.png  
-• Table header background: #709fcc white text.  
-• Preference-button cluster (3 pills) with classes:
-  .pref-btn btn-essential / btn-interested / btn-notInterested – include the
-  tiny JS that toggles 'btn-unselected' & adds the ✓ exactly as demo HTML.  
-• Colour tokens:  
-  #4fb57d green, #f49547 orange, #ef6460 red, #B22222 deep-red.  
-• <h3>/<h4> section headings, body text <p>, bullet lists <ul>/<ol>, data tables
-  with <thead>/<tbody>.  
-• Max total size 180 kB.
-
-━━━━━━━━━━  CONTENT FLOW  ━━━━━━━━━━
-1 OVERVIEW – summarise existing cover (Public/Product Liab., Stock & Contents,
-  Employers' Liab., Business Interruption, etc.). Clear language – NO phrase
-  "plain-English".
-
-2 COVERAGE TABLE – build a 5-column table exactly like the example:
-  Coverage Type | Category (Essential / Peace-of-Mind / Optional) |
-  Client-specific claim scenarios | How to claim (timeline & cost) |
-  Annual Cost (pull figures from uploaded docs if present).
-
-3 RED FLAGS & REAL-LIFE SCENARIOS – combine gaps with ACTUAL documented winning &
-  losing claims (pet industry or similar SME examples). Include time & money
-  consequences.
-
-4 RECOMMENDED TESTS & CERTIFICATES BY PRODUCT CATEGORY – map each product line
-  to relevant ISO/BS/CE/REACH etc. Add potential % premium savings.
-
-5 BENEFITS OF ADDITIONAL STEPS – financial, claims-speed, insurer confidence,
-  competitive advantage.
-
-━━━━━━━━━━  METADATA  ━━━━━━━━━━
-• Top of report:  
-  "Joro High Level Insurance Review & Recommendations"  
-  Prepared by JORO  
-  For: <org name from {website}>  
-  Date: {today}
-
-• If file IDs {file_ids} exist, cite filenames when referencing their data.
-
-Return **raw HTML only** with the in-line CSS + minimal JS for preference
-buttons. No markdown fences, no explanatory text.
-
-━━━━━━━━━━  STYLE BLOCK  ━━━━━━━━━━
-<style>
-    body {{
-        font-family: 'Segoe UI', Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }}
+    # Get file details
+    file_details = get_uploaded_files(file_ids)
+    file_names = [f["filename"] for f in file_details]
+    file_info = "\n".join([f"- {f}" for f in file_names]) if file_names else "No documents uploaded"
     
-    h1, h2, h3, h4 {{
-        color: #3a5a7c;
-        margin-top: 1.5em;
-    }}
-    
-    h1 {{
-        font-size: 28px;
-        text-align: center;
-        margin-bottom: 5px;
-    }}
-    
-    h2 {{
-        font-size: 24px;
-        border-bottom: 2px solid #709fcc;
-        padding-bottom: 10px;
-    }}
-    
-    h3 {{
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-    }}
-    
-    h3 img {{
-        height: 24px;
-        margin-right: 10px;
-    }}
-    
-    table {{
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-    }}
-    
-    th {{
-        background-color: #709fcc;
-        color: white;
-        padding: 10px;
-        text-align: left;
-    }}
-    
-    td {{
-        padding: 10px;
-        border: 1px solid #ddd;
-    }}
-    
-    tr:nth-child(even) {{
-        background-color: #f2f7fd;
-    }}
-    
-    .highlight-green {{
-        color: #4fb57d;
-        font-weight: bold;
-    }}
-    
-    .highlight-orange {{
-        color: #f49547;
-        font-weight: bold;
-    }}
-    
-    .highlight-red {{
-        color: #ef6460;
-        font-weight: bold;
-    }}
-    
-    .highlight-deep-red {{
-        color: #B22222;
-        font-weight: bold;
-    }}
-    
-    .metadata {{
-        text-align: center;
-        margin-bottom: 30px;
-    }}
-    
-    .metadata p {{
-        margin: 5px 0;
-    }}
-    
-    .pref-button-group {{
-        display: flex;
-        gap: 10px;
-        margin: 10px 0;
-    }}
-    
-    .pref-btn {{
-        padding: 5px 15px;
-        border-radius: 20px;
-        border: none;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }}
-    
-    .btn-essential {{
-        background-color: #4fb57d;
-    }}
-    
-    .btn-interested {{
-        background-color: #f49547;
-    }}
-    
-    .btn-notInterested {{
-        background-color: #ef6460;
-    }}
-    
-    .btn-unselected {{
-        opacity: 0.6;
-    }}
-    
-    .section-icon {{
-        width: 40px;
-        height: 40px;
-        margin-right: 15px;
-    }}
-</style>
-"""
-
+    # First, try to get content from the website to determine industry
     try:
-        # Updated API call
-        resp = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user", "content": PROMPT}],
-            temperature=0.4,
-            max_tokens=3000,
-        )
-        html = resp.choices[0].message.content
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        r = requests.get(website, timeout=20, headers=headers)
+        r.raise_for_status()
+        text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:6000]
+        
+        # First, get industry information using Claude
+        industry_prompt = f"""
+        Analyze the following text extracted from the website {website} and determine:
+        1. The precise industry or business sector (be specific)
+        2. The main business activities
+        3. The important risk areas relevant to insurance
+        4. The company name
+        
+        Be very specific about the industry. For example, if it's construction, specify what type (residential, commercial, etc.).
+        
+        Extracted text:
+        {text}
+        """
+        
+        industry_analysis = call_claude(industry_prompt, temperature=0.2, max_tokens=600)
+        print(f"Industry analysis: {industry_analysis}")
+        
+    except Exception as exc:
+        print(f"Industry analysis error: {exc}")
+        industry_analysis = "Unable to determine specific industry details."
+    
+    # Define the prompt for Claude
+    AUDIT_PROMPT = f"""
+    You are an expert UK commercial insurance broker with over 30 years of experience. 
+    
+    I need you to create a comprehensive insurance review and recommendation document for:
+    
+    Website: {website}
+    Uploaded insurance documents: {file_info}
+    
+    Industry analysis based on website content:
+    {industry_analysis}
+    
+    Create a complete, professional HTML document with the following structure:
+    
+    1. OVERVIEW
+    - Summarize typical insurance coverage for this specific industry (Public/Product Liability, Stock & Contents, Employers' Liability, Business Interruption, etc.)
+    - Use clear, professional language
+    - Be specific to the type of business/industry identified
+    
+    2. COVERAGE TABLE
+    - Create a 5-column table with:
+      - Coverage Type 
+      - Category (Essential/Peace-of-Mind/Optional)
+      - Industry-specific claim scenarios
+      - How to claim (timeline & cost expectations)
+      - Annual Cost (estimated range)
+    - Make all examples SPECIFIC to the identified industry
+    
+    3. RED FLAGS & REAL-LIFE SCENARIOS
+    - Identify potential insurance gaps based on the specific business type
+    - Provide REAL industry-specific claim examples (both successful and unsuccessful)
+    - For each example, explain what helped the claim succeed or why it failed
+    - Include time and financial consequences
+    
+    4. RECOMMENDED TESTS & CERTIFICATES
+    - List industry-specific certifications relevant to this business type
+    - Explain how each certificate strengthens claims
+    - Include potential premium savings percentages
+    
+    5. BENEFITS OF ADDITIONAL STEPS
+    - Financial benefits (premium reductions, lower excess/deductibles)
+    - Operational advantages (faster claims, fewer disputes)
+    - Competitive advantages specific to this industry
+    
+    FORMAT REQUIREMENTS:
+    - Title: "Joro High Level Insurance Review & Recommendations"
+    - Header info: "Prepared by JORO" + "For: [Company Name]" + "Date: {today}"
+    - Use professional styling with a clean look
+    - Include preference buttons under each coverage item
+    - Table header background color: #709fcc with white text
+    - Color scheme: #4fb57d green, #f49547 orange, #ef6460 red, #B22222 deep-red
+    
+    IMPORTANT: All examples, scenarios, and recommendations MUST be very specific to the exact industry of this business.
+    DO NOT use generic examples. DO NOT mention pets or pet stores unless this is actually a pet-related business.
+    
+    Return ONLY valid HTML (no markdown or code blocks).
+    """
+    
+    try:
+        # Call Claude API
+        html = call_claude(AUDIT_PROMPT, temperature=0.4, max_tokens=4000)
         print(f"Successfully generated audit HTML (length: {len(html)})")
         return jsonify(html=html)
     except Exception as exc:
-        print(f"OpenAI Error: {exc}")
-        return jsonify(error=f"OpenAI error: {exc}"), 500
+        print(f"Claude API Error: {exc}")
+        return jsonify(error=f"Claude API error: {exc}"), 500
 
 # ────────── handle OPTIONS requests for audit
 @app.route('/api/generate-audit', methods=['OPTIONS'])
