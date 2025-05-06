@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import openai                                   # 0.28.1 pinned
+import openai                                   # pinned at 0.28.1
 
 # ────────── ENV / PATHS
 load_dotenv()
@@ -25,15 +25,18 @@ def short_id() -> str:
 def index():
     return send_from_directory(app.static_folder, "index.html")
 
-# ────────── helper – tiny site summary
+# ────────── quick site analysis
 @app.post("/api/analyse-website")
 def analyse_website():
     website = request.json.get("website", "").strip()
     if not website:
         return jsonify(error="no website provided"), 400
     try:
-        r = requests.get(website, timeout=10,
-                         headers={"User-Agent": "Mozilla/5.0 (JoroAudit/1.0)"})
+        r = requests.get(
+            website,
+            timeout=10,
+            headers={"User-Agent": "Mozilla/5.0 (JoroAudit/1.0)"},
+        )
         r.raise_for_status()
     except Exception as exc:
         return jsonify(error=f"failed to fetch website: {exc}"), 500
@@ -72,48 +75,60 @@ def generate_audit():
     file_ids = data.get("files", [])            # may be []
     today    = datetime.date.today().strftime("%d %B %Y")
 
-    PROMPT = f"""
-You are an expert UK commercial-insurance broker and business advisor with 30+
-years’ experience.  Produce a **single, stand-alone HTML document** – DO NOT wrap
-it in ``` fences – following the exact 5-section flow below and matching the
-polished styling used by JORO (fonts/colors defined by the receiving CSS).
+    PROMPT = f"""You are an expert UK commercial-insurance broker and business
+advisor (30 + yrs).  Produce a **single, stand-alone HTML document** – NO ``` –
+that follows **exactly** the visual framework JORO provided.
 
-Use British spelling (£), insert **Date: {today}**, and treat the organisation
-name exactly as it appears on {website}.  If uploaded document IDs are present
-({file_ids}), reference them where relevant.
+━━━━━━━━━━  DESIGN REQUIREMENTS  ━━━━━━━━━━
+• Inject the full <style> block shown below (adjust colours/widths only if
+  necessary for readability).  
+• Use the SAME heading-icon URLs:  
+  • magnifying glass → …/Icon+-+magnifying+glass.png  
+  • coverage table  → …/Icon+-+Coverage+table.png  
+  • red flag        → …/Icon+-+red+flag.png  
+  • test certs      → …/Icon+-+test+certificates.png  
+  • benefits        → …/Icon+-+benefits.png  
+• Table header background: #709fcc white text.  
+• Preference-button cluster (3 pills) with classes:
+  .pref-btn btn-essential / btn-interested / btn-notInterested – include the
+  tiny JS that toggles ‘btn-unselected’ & adds the ✓ exactly as demo HTML.  
+• Colour tokens:  
+  #4fb57d green, #f49547 orange, #ef6460 red, #B22222 deep-red.  
+• <h3>/<h4> section headings, body text <p>, bullet lists <ul>/<ol>, data tables
+  with <thead>/<tbody>.  
+• Max total size 180 kB.
 
-━━━━━━━━━━  REQUIRED REPORT STRUCTURE  ━━━━━━━━━━
-1  Overview  
-   • Summarise current policies (Public/Product Liability, Stock & Contents,
-     Employers’ Liability, Business Interruption, etc.).  
-   • Plain language – no “plain-English” label, no jargon.
+━━━━━━━━━━  CONTENT FLOW  ━━━━━━━━━━
+1 OVERVIEW – summarise existing cover (Public/Product Liab., Stock & Contents,
+  Employers’ Liab., Business Interruption, etc.).  Clear language – NO phrase
+  “plain-English”.
 
-2  Coverage Table  
-   • Columns: Coverage Type | Category (Essential / Peace-of-Mind /
-     Optional) | Client Claim Scenarios | How to Claim (timeline & cost).  
-   • Incorporate existing premiums & insurers from uploaded docs.
+2 COVERAGE TABLE – build a 5-column table exactly like the example:
+  Coverage Type | Category (Essential / Peace-of-Mind / Optional) |
+  Client-specific claim scenarios | How to claim (timeline & cost) |
+  Annual Cost (pull figures from uploaded docs if present).
 
-3  Red Flags & Real-Life Scenarios  
-   • Identify gaps (missing tests, expired policies, exclusions).  
-   • Provide ACTUAL documented winning & losing claim examples in this sector
-     (cite what made them succeed/fail, time & cost impact).
+3 RED FLAGS & REAL-LIFE SCENARIOS – combine gaps with ACTUAL documented winning &
+  losing claims (pet industry or similar SME examples).  Include time & money
+  consequences.
 
-4  Recommended Tests & Certificates by Product Category  
-   • Map each product category to standards/certs (ISO, BS EN, CE, REACH …).  
-   • Add indicative premium-reduction percentages (e.g. 5-10 %).  
+4 RECOMMENDED TESTS & CERTIFICATES BY PRODUCT CATEGORY – map each product line
+  to relevant ISO/BS/CE/REACH etc.  Add potential % premium savings.
 
-5  Benefits of Additional Steps  
-   • Show financial savings, risk reduction, long-term insurer confidence.  
-   • Connect every benefit back to the client and insurer.
+5 BENEFITS OF ADDITIONAL STEPS – financial, claims-speed, insurer confidence,
+  competitive advantage.
 
-━━━━━━━━━━  STYLE & FORMAT  ━━━━━━━━━━
-• Headings <h3>/<h4>; body text <p>, <ul>, <table>.  
-• Re-use JORO colour palette (#709fcc header rows, #4fb57d buttons, etc.).  
-• Tables with <thead>, <tbody>; no inline JS other than minimal button logic
-  if you wish.  
-• Keep total <= 200 kB.
+━━━━━━━━━━  METADATA  ━━━━━━━━━━
+• Top of report:  
+  “Joro High Level Insurance Review & Recommendations”  
+  Prepared by JORO  
+  For: <org name from {website}>  
+  Date: {today}
 
-Return ONLY valid HTML – **no markdown back-ticks**, no commentary.
+• If file IDs {file_ids} exist, cite filenames when referencing their data.
+
+Return **raw HTML only** with the in-line CSS + minimal JS for preference
+buttons.  No markdown fences, no explanatory text.
 """
 
     try:
@@ -121,7 +136,7 @@ Return ONLY valid HTML – **no markdown back-ticks**, no commentary.
             model="gpt-4o",
             messages=[{"role": "user", "content": PROMPT}],
             temperature=0.4,
-            max_tokens=2048,
+            max_tokens=3000,
         )
         html = resp.choices[0].message.content
         return jsonify(html=html)
