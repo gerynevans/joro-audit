@@ -1,202 +1,383 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Joro – Insurance Audit</title>
-  <style>
-    /* ---------- LAYOUT ---------- */
-    .container{width:75%;margin:0 auto 4rem;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#222;font-size:16px;line-height:1.6}
-    @media(max-width:768px){.container{width:90%}}
-
-    /* ---------- HEADINGS ---------- */
-    .form-group{margin-bottom:2rem}
-    .audit-heading{display:flex;align-items:center;margin-bottom:1rem}
-    .audit-heading img{width:90px;margin-right:12px}
-    .audit-label{display:flex;flex-direction:column;text-transform:uppercase;font-weight:bold;line-height:1.2}
-    .audit-label span:first-child{font-size:1rem}
-    .audit-label span:last-child{font-size:1.25rem;color:#000}
-    .label-lite  span:first-child{color:#f67e6f}
-    .label-mid   span:first-child{color:#f5b354}
-    .label-deep  span:first-child{color:#7fc197}
-
-    /* ---------- INPUTS ---------- */
-    input[type=text]{width:100%;padding:12px;font-size:1rem;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;margin-bottom:1rem}
-
-    /* ---------- BUTTONS ---------- */
-    .btn{display:inline-block;padding:10px 20px;font-size:.875rem;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;transition:.3s}
-    .upload-btn{background:#000;color:#fff;position:relative;margin-right:1rem}
-    .upload-btn:hover{background:#333}
-    .upload-btn input[type=file]{position:absolute;left:0;top:0;opacity:0;height:100%;width:100%;cursor:pointer}
-
-    .confirm-btn{background:#72AEE6;color:#fff;margin-bottom:1rem}
-    .confirm-btn:hover{background:#539ad6}
-
-    .start-audit-btn{background:#709fcc;color:#fff;padding:12px 20px;font-size:1rem;margin-top:1.5rem}
-    .start-audit-btn:hover{background:#5c8ab8}
-    .start-audit-btn.loading{pointer-events:none}
-    .start-audit-btn.loading::after{content:'';display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #fff;border-top-color:transparent;animation:spin .6s linear infinite;margin-left:8px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    .view-audit-btn{display:none;background:#4fb57d;color:#fff;padding:12px 20px;font-size:1rem;border:none;border-radius:4px;text-transform:uppercase;text-decoration:none;margin-top:1.5rem}
-    .view-audit-btn:hover{background:#40a169}
-
-    /* ---------- TICK ---------- */
-    .tick-icon{color:green;font-size:1.2rem;margin-left:6px;visibility:hidden}
-
-    /* ---------- FILE TABLE ---------- */
-    .file-section{margin-top:3rem}
-    .file-section h3{font-size:1.125rem;font-weight:600;color:#5c7da6;margin-bottom:1rem}
-    table{width:100%;border-collapse:collapse;margin-top:1rem}
-    th,td{text-align:left;padding:12px;border:1px solid #ddd}
-    th{background:#f5f5f5;font-weight:600}
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2487.5">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 16.0px 'Helvetica Neue'; color: #1a1a1a; -webkit-text-stroke: #1a1a1a}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 16.0px 'Helvetica Neue'; color: #1a1a1a; -webkit-text-stroke: #1a1a1a; min-height: 18.0px}
+    span.s1 {font-kerning: none}
+    span.s2 {font: 16.0px 'Lucida Grande'; font-kerning: none}
   </style>
 </head>
 <body>
-<div class="container">
-  <!-- ──────────────── LITE AUDIT ──────────────── -->
-  <div class="form-group">
-    <div class="audit-heading">
-      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78cb5970c5a5f271053/1743447948958/Lite+audit2.png" alt="Lite">
-      <div class="audit-label label-lite"><span>Lite</span><span>Audit</span></div>
-    </div>
-
-    <input type="text" id="companyWebsite" placeholder="Enter your company website">
-    <button id="confirmWebsiteBtn" class="btn confirm-btn">Confirm Website</button>
-    <span id="websiteTick" class="tick-icon">✓</span>
-  </div>
-
-  <!-- ──────────────── MID-LEVEL ───────────────── -->
-  <div class="form-group">
-    <div class="audit-heading">
-      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78cba62e30c8ac63059/1743447948943/Mid+level+audit2.png" alt="Mid">
-      <div class="audit-label label-mid"><span>Mid-Level</span><span>Audit</span></div>
-    </div>
-    <p>Upload existing insurance documents for our mid-level audit.</p>
-    <label class="upload-btn">Upload
-      <input type="file" id="midLevel" multiple>
-    </label>
-  </div>
-
-  <!-- ──────────────── DEEP DIVE ──────────────── -->
-  <div class="form-group">
-    <div class="audit-heading">
-      <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67eae78c150c986d30980ed1/1743447948987/Deep+dive+audit2.png" alt="Deep">
-      <div class="audit-label label-deep"><span>Deep Dive</span><span>Audit</span></div>
-    </div>
-    <p>Upload supporting documents — brochures, supplier contracts, etc.</p>
-    <label class="upload-btn">Upload
-      <input type="file" id="deepDive" multiple>
-    </label>
-  </div>
-
-  <!-- ──────────────── ACTIONS ─────────────────── -->
-  <button id="startAuditBtn" class="start-audit-btn">Start Audit</button>
-  <a id="viewAuditBtn" class="view-audit-btn" target="_blank">View Audit</a>
-
-  <!-- ──────────────── FILE LIST ───────────────── -->
-  <div class="file-section">
-    <h3>Uploaded Files</h3>
-    <table>
-      <thead><tr><th>File Name</th><th>Status</th></tr></thead>
-      <tbody id="fileTableBody"></tbody>
-    </table>
-  </div>
-</div>
-
-<script>
-/* ---------- ELEMENTS ---------- */
-const websiteInput   = document.getElementById('companyWebsite');
-const confirmBtn     = document.getElementById('confirmWebsiteBtn');
-const websiteTick    = document.getElementById('websiteTick');
-const midInput       = document.getElementById('midLevel');
-const deepInput      = document.getElementById('deepDive');
-const startBtn       = document.getElementById('startAuditBtn');
-const viewBtn        = document.getElementById('viewAuditBtn');
-const fileTableBody  = document.getElementById('fileTableBody');
-
-/* ---------- STATE ---------- */
-let websiteConfirmed = false;
-let uploadedFileIds  = [];      // IDs returned by /api/upload-file
-
-/* ---------- HELPERS ---------- */
-function addRow(name){
-  const tr = document.createElement('tr');
-  tr.innerHTML = `<td>${name}</td><td><span class="tick-icon">✓</span></td>`;
-  fileTableBody.appendChild(tr);
-}
-async function postJSON(url,obj){
-  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});
-  if(!r.ok) throw new Error(await r.text());
-  return r.json();
-}
-
-/* ---------- CONFIRM WEBSITE ---------- */
-confirmBtn.addEventListener('click',async ()=>{
-  const url = websiteInput.value.trim();
-  websiteTick.style.visibility='hidden';
-  if(!url){alert('Enter a website first'); return;}
-
-  try{
-    await postJSON('/api/analyse-website',{website:url});
-    websiteConfirmed = true;
-    websiteTick.style.visibility='visible';
-  }catch(err){
-    alert('Server error analysing website:\n'+err.message);
-  }
-});
-
-/* reset tick if the user edits the URL again */
-websiteInput.addEventListener('input',()=>{
-  websiteConfirmed = false;
-  websiteTick.style.visibility='hidden';
-});
-
-/* ---------- FILE UPLOAD ---------- */
-async function handleFiles(inputEl,category){
-  for(const file of inputEl.files){
-    const fd = new FormData();
-    fd.append('file',file);
-    fd.append('category',category);
-
-    try{
-      const r = await fetch('/api/upload-file',{method:'POST',body:fd});
-      if(!r.ok) throw new Error(await r.text());
-      const {id,filename}=await r.json();
-      uploadedFileIds.push(id);
-      addRow(filename||file.name);
-    }catch(err){
-      alert(`Upload failed for ${file.name}:\n`+err.message);
-    }
-  }
-}
-midInput.addEventListener('change',()=>handleFiles(midInput ,'mid'));
-deepInput.addEventListener('change',()=>handleFiles(deepInput,'deep'));
-
-/* ---------- START AUDIT ---------- */
-startBtn.addEventListener('click',async ()=>{
-  if(!websiteConfirmed){alert('Please confirm website first');return;}
-  startBtn.classList.add('loading');
-
-  try{
-    const data = await postJSON('/api/generate-audit',{
-      website:websiteInput.value.trim(),
-      files  :uploadedFileIds          // may be []
-    });
-    const html = data.html||'<h1>No content returned</h1>';
-
-    /* open report in new tab */
-    const blob = new Blob([html],{type:'text/html'});
-    const url  = URL.createObjectURL(blob);
-    viewBtn.href=url;
-    viewBtn.style.display='inline-block';
-    startBtn.style.display='none';
-    viewBtn.click();                  // auto-open
-  }catch(err){
-    alert('Audit generation failed:\n'+err.message);
-  }finally{
-    startBtn.classList.remove('loading');
-  }
-});
-</script>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;JORO Insurance Audit&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>line-height: 1.6;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: #333;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>max-width: 1200px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 0 auto;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.container {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #f9f9f9;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 8px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 30px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>box-shadow: 0 2px 10px rgba(0,0,0,0.1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>header {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>text-align: center;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 30px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>header img {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>max-width: 200px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 15px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>h1 {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: #3a5a7c;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 5px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>h2 {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: #3a5a7c;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-bottom: 2px solid #709fcc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding-bottom: 10px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 40px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.form-group {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 25px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>label {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: block;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 8px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 600;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>input[type="text"], input[type="file"] {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>width: 100%;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 12px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border: 1px solid #ddd;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>box-sizing: border-box;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 16px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>button {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #4fb57d;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: white;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border: none;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 12px 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>cursor: pointer;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 16px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 600;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>transition: background-color 0.3s;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>button:hover {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #3d9665;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.button-secondary {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #709fcc;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.button-secondary:hover {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #5c82a8;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#uploadList {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 10px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 14px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.upload-item {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #eef5ff;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 8px 12px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 8px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: flex;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>justify-content: space-between;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#websiteSummary {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #eef5ff;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 15px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 15px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: none;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#loading {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: none;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>text-align: center;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>#resultContainer {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 30px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border: 1px solid #ddd;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 8px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>overflow: hidden;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: white;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.btn-group {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>display: flex;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>gap: 10px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.alert {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 12px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 4px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: white;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #ef6460;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;header&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;!-- You can replace this with your actual logo --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;h1&gt;JORO Insurance Audit&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p&gt;Comprehensive insurance review and recommendations for your business&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/header&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div id="errorAlert" class="alert" style="display: none;"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Step 1: Enter Your Business Website&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label for="websiteInput"&gt;Website URL&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="text" id="websiteInput" placeholder="https://example.com" required&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button id="analyseButton" class="button-secondary"&gt;Analyse Website&lt;/button&gt;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div id="websiteSummary"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Step 2: Upload Insurance Documents (Optional)&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label for="fileInput"&gt;Upload PDFs or Images&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="file" id="fileInput" multiple&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div id="uploadList"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Step 3: Generate Full Audit Report&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button id="generateButton"&gt;Generate Insurance Audit&lt;/button&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div id="loading"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p&gt;Generating your comprehensive insurance audit...&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;p&gt;This may take a minute or two.&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div id="resultContainer" style="display: none;"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.addEventListener('DOMContentLoaded', function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const websiteInput = document.getElementById('websiteInput');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const analyseButton = document.getElementById('analyseButton');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const websiteSummary = document.getElementById('websiteSummary');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const fileInput = document.getElementById('fileInput');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const uploadList = document.getElementById('uploadList');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const generateButton = document.getElementById('generateButton');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const loading = document.getElementById('loading');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const resultContainer = document.getElementById('resultContainer');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const errorAlert = document.getElementById('errorAlert');</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Track uploaded files</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>const uploadedFiles = [];</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Analyse website</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>analyseButton.addEventListener('click', async function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const website = websiteInput.value.trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (!website) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>showError('Please enter a website URL');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Basic URL validation</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (!website.startsWith('http://') &amp;&amp; !website.startsWith('https://')) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>websiteInput.value = 'https://' + website;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>analyseButton.disabled = true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>analyseButton.textContent = 'Analysing...';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const response = await fetch('/api/analyse-website', {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>method: 'POST',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>headers: { 'Content-Type': 'application/json' },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>body: JSON.stringify({ website: websiteInput.value })</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const data = await response.json();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (data.error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>showError(data.error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>websiteSummary.style.display = 'block';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>websiteSummary.innerHTML = `&lt;strong&gt;Business Summary:&lt;/strong&gt; ${data.summary}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>showError('Failed to analyse website. Please try again.');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>console.error(error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>} finally {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>analyseButton.disabled = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>analyseButton.textContent = 'Analyse Website';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Handle file uploads</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>fileInput.addEventListener('change', async function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const files = fileInput.files;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (files.length === 0) return;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>for (let i = 0; i &lt; files.length; i++) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const file = files[i];</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const formData = new FormData();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>formData.append('file', file);</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const response = await fetch('/api/upload-file', {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>method: 'POST',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>body: formData</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const data = await response.json();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (data.error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>showError(`Failed to upload ${file.name}: ${data.error}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>// Track the file</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>uploadedFiles.push({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>id: data.id,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                                </span>filename: data.filename</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                            </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>// Update the UI</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>updateUploadList();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>showError(`Failed to upload ${file.name}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>console.error(error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Clear the input</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>fileInput.value = '';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Generate audit report</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>generateButton.addEventListener('click', async function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const website = websiteInput.value.trim();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>if (!website) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>showError('Please enter a website URL');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Show loading indicator</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>loading.style.display = 'block';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>generateButton.disabled = true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>resultContainer.style.display = 'none';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const response = await fetch('/api/generate-audit', {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>method: 'POST',</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>headers: { 'Content-Type': 'application/json' },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>body: JSON.stringify({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>website: website,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>files: uploadedFiles.map(f =&gt; f.id)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>})</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const data = await response.json();</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>if (data.error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>showError(data.error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Display the result</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>resultContainer.innerHTML = data.html;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>resultContainer.style.display = 'block';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Add event listeners to preference buttons if they exist</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>setupPreferenceButtons();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>} catch (error) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>showError('Failed to generate audit report. Please try again.');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>console.error(error);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>} finally {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>loading.style.display = 'none';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>generateButton.disabled = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Helper to update the upload list UI</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>function updateUploadList() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>uploadList.innerHTML = '';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>uploadedFiles.forEach(function(file, index) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>const item = document.createElement('div');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>item.className = 'upload-item';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>item.innerHTML = `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;span&gt;${file.filename}&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>&lt;button class="remove-file" data-index="${index}"&gt;Remove&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>`;</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                    </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>uploadList.appendChild(item);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Add event listeners to remove buttons</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>document.querySelectorAll('.remove-file').forEach(button =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>button.addEventListener('click', function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const index = parseInt(this.getAttribute('data-index'));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>uploadedFiles.splice(index, 1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>updateUploadList();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Setup preference buttons in generated HTML</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>function setupPreferenceButtons() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>const buttons = resultContainer.querySelectorAll('.pref-btn');</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>buttons.forEach(button =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>button.addEventListener('click', function() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Find the button group</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>const group = this.closest('.pref-button-group');</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Remove 'btn-unselected' class from all buttons in the group</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>group.querySelectorAll('.pref-btn').forEach(btn =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>btn.classList.add('btn-unselected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>// Remove check mark</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>btn.textContent = btn.textContent.replace(' </span><span class="s2">✓</span><span class="s1">', '');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>});</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                        </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Add 'selected' to the clicked button</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>this.classList.remove('btn-unselected');</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>// Add check mark</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>if (!this.textContent.includes('</span><span class="s2">✓</span><span class="s1">')) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                            </span>this.textContent += ' </span><span class="s2">✓</span><span class="s1">';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>// Show error message</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>function showError(message) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>errorAlert.textContent = message;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>errorAlert.style.display = 'block';</span></p>
+<p class="p2"><span class="s1"><span class="Apple-converted-space">                </span></span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>// Hide after 5 seconds</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>setTimeout(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                    </span>errorAlert.style.display = 'none';</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>}, 5000);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
 </body>
 </html>
