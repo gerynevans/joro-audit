@@ -15,7 +15,16 @@ TMP_DIR  = pathlib.Path(tempfile.gettempdir()) / "joro_uploads"
 TMP_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__, static_folder=str(BASE_DIR / "static"))
-CORS(app)
+# Enable CORS for all domains
+CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Content-Type"], "methods": ["GET", "POST", "OPTIONS"]}})
+
+# Additional CORS handling
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 def short_id() -> str:
     return uuid.uuid4().hex[:12]
@@ -98,6 +107,11 @@ def analyse_website():
         print(f"OpenAI Error: {exc}")
         return jsonify(error=f"OpenAI error: {exc}"), 500
 
+# ────────── handle OPTIONS requests for CORS preflight
+@app.route('/api/analyse-website', methods=['OPTIONS'])
+def handle_options_analyse():
+    return '', 200
+
 # ────────── file upload
 @app.post("/api/upload-file")
 def upload_file():
@@ -107,6 +121,11 @@ def upload_file():
     fid = short_id()
     f.save(TMP_DIR / f"{fid}_{f.filename}")
     return jsonify(id=fid, filename=f.filename)
+
+# ────────── handle OPTIONS requests for file upload
+@app.route('/api/upload-file', methods=['OPTIONS'])
+def handle_options_upload():
+    return '', 200
 
 # ────────── file retrieval (helper function)
 def get_uploaded_files(file_ids):
@@ -331,6 +350,11 @@ buttons. No markdown fences, no explanatory text.
     except Exception as exc:
         print(f"OpenAI Error: {exc}")
         return jsonify(error=f"OpenAI error: {exc}"), 500
+
+# ────────── handle OPTIONS requests for audit
+@app.route('/api/generate-audit', methods=['OPTIONS'])
+def handle_options_audit():
+    return '', 200
 
 # ────────── local dev
 if __name__ == "__main__":
