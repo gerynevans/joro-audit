@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from anthropic import Anthropic  # Added official Anthropic client
+from prompts import get_analysis_prompt, get_audit_prompt  # Import the prompt functions
 
 # ────────── ENV / PATHS
 load_dotenv()
@@ -31,13 +31,10 @@ def short_id() -> str:
 
 # ────────── Claude API integration
 def call_claude(prompt, temperature=0.3, max_tokens=4000):
-    """Call Claude API with the provided prompt using the official client"""
-    client = Anthropic(api_key=CLAUDE_KEY)
-    
+    """Call Claude API with the provided prompt using direct API call"""
     try:
         print(f"Sending request to Claude API with prompt length: {len(prompt)}")
         
-        # Revert to using the direct API call method
         url = "https://api.anthropic.com/v1/messages"
         headers = {
             "x-api-key": CLAUDE_KEY,
@@ -45,7 +42,7 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
             "content-type": "application/json"
         }
         data = {
-            "model": "claude-3-haiku-20240307",  # Try a different model
+            "model": "claude-3-haiku-20240307",  # Using a model that should be available
             "max_tokens": max_tokens,
             "temperature": temperature,
             "messages": [
@@ -133,19 +130,8 @@ def analyse_website():
         print(f"Text extraction error: {exc}")
         return jsonify(error=f"Failed to parse website content: {exc}"), 500
 
-    # Define the prompt for Claude
-    prompt = f"""
-    Analyze the business activities found on **{website}** based on the extracted text.
-    
-    Provide a concise summary (max 100 words) that includes:
-    1. The industry/sector
-    2. Main business activities
-    3. Products or services offered
-    4. Notable insurance-relevant risks for this type of business
-    
-    Extracted text (truncated):
-    {text}
-    """
+    # Use the get_analysis_prompt function from prompts.py
+    prompt = get_analysis_prompt(website, text)
     
     try:
         # Call Claude API
@@ -196,106 +182,18 @@ def generate_audit():
     data = request.get_json(force=True)
     website = data.get("website", "").strip()
     file_ids = data.get("files", [])            # may be []
-    today = datetime.date.today().strftime("%d %B %Y")
     
     print(f"Generating audit for website: {website} with file IDs: {file_ids}")
     
     # Get file details
     file_details = get_uploaded_files(file_ids)
-    file_names = [f["filename"] for f in file_details]
-    file_info = "\n".join([f"- {f}" for f in file_names]) if file_names else "No documents uploaded"
     
-    # First, try to get content from the website to determine industry
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
-        r = requests.get(website, timeout=20, headers=headers)
-        r.raise_for_status()
-        text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:6000]
-        
-        # First, get industry information using Claude
-        industry_prompt = f"""
-        Analyze the following text extracted from the website {website} and determine:
-        1. The precise industry or business sector (be specific)
-        2. The main business activities
-        3. The important risk areas relevant to insurance
-        4. The company name
-        
-        Be very specific about the industry. For example, if it's construction, specify what type (residential, commercial, etc.).
-        
-        Extracted text:
-        {text}
-        """
-        
-        industry_analysis = call_claude(industry_prompt, temperature=0.2, max_tokens=600)
-        print(f"Industry analysis: {industry_analysis}")
-        
-    except Exception as exc:
-        print(f"Industry analysis error: {exc}")
-        industry_analysis = "Unable to determine specific industry details."
-    
-    # Define the prompt for Claude
-    AUDIT_PROMPT = f"""
-    You are an expert UK commercial insurance broker with over 30 years of experience. 
-    
-    I need you to create a comprehensive insurance review and recommendation document for:
-    
-    Website: {website}
-    Uploaded insurance documents: {file_info}
-    
-    Industry analysis based on website content:
-    {industry_analysis}
-    
-    Create a complete, professional HTML document with the following structure:
-    
-    1. OVERVIEW
-    - Summarize typical insurance coverage for this specific industry (Public/Product Liability, Stock & Contents, Employers' Liability, Business Interruption, etc.)
-    - Use clear, professional language
-    - Be specific to the type of business/industry identified
-    
-    2. COVERAGE TABLE
-    - Create a 5-column table with:
-      - Coverage Type 
-      - Category (Essential/Peace-of-Mind/Optional)
-      - Industry-specific claim scenarios
-      - How to claim (timeline & cost expectations)
-      - Annual Cost (estimated range)
-    - Make all examples SPECIFIC to the identified industry
-    
-    3. RED FLAGS & REAL-LIFE SCENARIOS
-    - Identify potential insurance gaps based on the specific business type
-    - Provide REAL industry-specific claim examples (both successful and unsuccessful)
-    - For each example, explain what helped the claim succeed or why it failed
-    - Include time and financial consequences
-    
-    4. RECOMMENDED TESTS & CERTIFICATES
-    - List industry-specific certifications relevant to this business type
-    - Explain how each certificate strengthens claims
-    - Include potential premium savings percentages
-    
-    5. BENEFITS OF ADDITIONAL STEPS
-    - Financial benefits (premium reductions, lower excess/deductibles)
-    - Operational advantages (faster claims, fewer disputes)
-    - Competitive advantages specific to this industry
-    
-    FORMAT REQUIREMENTS:
-    - Title: "Joro High Level Insurance Review & Recommendations"
-    - Header info: "Prepared by JORO" + "For: [Company Name]" + "Date: {today}"
-    - Use professional styling with a clean look
-    - Include preference buttons under each coverage item
-    - Table header background color: #709fcc with white text
-    - Color scheme: #4fb57d green, #f49547 orange, #ef6460 red, #B22222 deep-red
-    
-    IMPORTANT: All examples, scenarios, and recommendations MUST be very specific to the exact industry of this business.
-    DO NOT use generic examples. DO NOT mention pets or pet stores unless this is actually a pet-related business.
-    
-    Return ONLY valid HTML (no markdown or code blocks).
-    """
+    # Get the audit prompt from prompts.py - this is the key change
+    prompt = get_audit_prompt(website, file_ids)
     
     try:
         # Call Claude API
-        html = call_claude(AUDIT_PROMPT, temperature=0.4, max_tokens=4000)
+        html = call_claude(prompt, temperature=0.4, max_tokens=4000)
         print(f"Successfully generated audit HTML (length: {len(html)})")
         return jsonify(html=html)
     except Exception as exc:
