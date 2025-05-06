@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from anthropic import Anthropic  # Added official Anthropic client
 
 # ────────── ENV / PATHS
 load_dotenv()
@@ -30,43 +31,29 @@ def short_id() -> str:
 
 # ────────── Claude API integration
 def call_claude(prompt, temperature=0.3, max_tokens=4000):
-    """Call Claude API with the provided prompt"""
-    url = "https://api.anthropic.com/v1/messages"
-    headers = {
-        "x-api-key": CLAUDE_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-    data = {
-        "model": "claude-3-sonnet-20240229",  # Using a stable model version
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
-    }
+    """Call Claude API with the provided prompt using the official client"""
+    client = Anthropic(api_key=CLAUDE_KEY)
     
     try:
         print(f"Sending request to Claude API with prompt length: {len(prompt)}")
-        response = requests.post(url, headers=headers, json=data)
-        print(f"Claude API response status: {response.status_code}")
+        message = client.messages.create(
+            model="claude-3-sonnet-20240229",
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        print(f"Claude API response received successfully")
         
-        if response.status_code != 200:
-            print(f"Error response: {response.text}")
-            return f"Error: Claude API returned status code {response.status_code}"
-        
-        result = response.json()
-        
-        # Handle the response structure correctly
-        if "content" in result and len(result["content"]) > 0:
-            return result["content"][0]["text"]
+        # Return the text from the first content item
+        if len(message.content) > 0:
+            return message.content[0].text
         else:
-            print(f"Unexpected response structure: {result}")
+            print(f"Unexpected response structure: {message}")
             return "Error: Unexpected response format from Claude API"
     except Exception as e:
         print(f"Claude API error: {e}")
-        if 'response' in locals() and hasattr(response, 'text'):
-            print(f"Response text: {response.text}")
         raise
 
 # ────────── serve front-end
