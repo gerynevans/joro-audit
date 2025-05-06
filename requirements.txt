@@ -1,5 +1,5 @@
 flask
-openai
+openai==0.28.1  # pin to pre-1.0 SDK so ChatCompletion.create continues to work
 python-dotenv
 gunicorn
 flask-cors
