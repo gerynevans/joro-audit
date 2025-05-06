@@ -1,3 +1,22 @@
+# prompts.py - Contains all the prompts used in the application
+import datetime
+
+def get_analysis_prompt(website, extracted_text):
+    """
+    Generate a prompt for analyzing a website
+    """
+    return f"""Analyze the business activities found on **{website}** based on the extracted text.
+
+1. Identify the industry/sector 
+2. Determine the main business activities
+3. Note any products or services mentioned
+4. Identify any potential insurance-related risks
+5. Summarize this all in ONE concise paragraph (max 100 words)
+
+Extracted text (truncated):
+{extracted_text}
+"""
+
 def get_audit_prompt(website, file_ids):
     """
     Generate a comprehensive prompt for the insurance audit report
