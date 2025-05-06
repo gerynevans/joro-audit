@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from prompts import get_analysis_prompt, get_audit_prompt  # Import the prompt functions
+from prompts import get_audit_prompt  # Import just the audit prompt function
 
 # ────────── ENV / PATHS
 load_dotenv()
@@ -130,8 +130,19 @@ def analyse_website():
         print(f"Text extraction error: {exc}")
         return jsonify(error=f"Failed to parse website content: {exc}"), 500
 
-    # Use the get_analysis_prompt function from prompts.py
-    prompt = get_analysis_prompt(website, text)
+    # Define the prompt directly instead of importing it
+    prompt = f"""
+    Analyze the business activities found on **{website}** based on the extracted text.
+    
+    Provide a concise summary (max 100 words) that includes:
+    1. The industry/sector
+    2. Main business activities
+    3. Products or services offered
+    4. Notable insurance-relevant risks for this type of business
+    
+    Extracted text (truncated):
+    {text}
+    """
     
     try:
         # Call Claude API
@@ -188,7 +199,7 @@ def generate_audit():
     # Get file details
     file_details = get_uploaded_files(file_ids)
     
-    # Get the audit prompt from prompts.py - this is the key change
+    # Get the audit prompt from prompts.py
     prompt = get_audit_prompt(website, file_ids)
     
     try:
