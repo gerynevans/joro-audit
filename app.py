@@ -36,24 +36,44 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
     
     try:
         print(f"Sending request to Claude API with prompt length: {len(prompt)}")
-        message = client.messages.create(
-            model="claude-3-sonnet",  # Using generic model name without date
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=[
+        
+        # Revert to using the direct API call method
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": CLAUDE_KEY,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        data = {
+            "model": "claude-3-haiku-20240307",  # Try a different model
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": [
                 {"role": "user", "content": prompt}
             ]
-        )
-        print(f"Claude API response received successfully")
+        }
         
-        # Return the text from the first content item
-        if len(message.content) > 0:
-            return message.content[0].text
+        print(f"Sending direct API request to Claude with model: {data['model']}")
+        response = requests.post(url, headers=headers, json=data)
+        print(f"Claude API response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Error response: {response.text}")
+            return f"Error: Claude API returned status code {response.status_code}"
+        
+        result = response.json()
+        
+        # Handle the response structure correctly
+        if "content" in result and len(result["content"]) > 0:
+            return result["content"][0]["text"]
         else:
-            print(f"Unexpected response structure: {message}")
+            print(f"Unexpected response structure: {result}")
             return "Error: Unexpected response format from Claude API"
+            
     except Exception as e:
         print(f"Claude API error: {e}")
+        if 'response' in locals() and hasattr(response, 'text'):
+            print(f"Response text: {response.text}")
         raise
 
 # ────────── serve front-end
