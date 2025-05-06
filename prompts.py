@@ -1,256 +1,309 @@
-# prompts.py - Contains all the prompts used in the application
-import datetime
-
-def get_analysis_prompt(website, extracted_text):
-    """
-    Generate a prompt for analyzing a website
-    """
-    return f"""Analyze the business activities found on **{website}** based on the extracted text.
-
-1. Identify the industry/sector 
-2. Determine the main business activities
-3. Note any products or services mentioned
-4. Identify any potential insurance-related risks
-5. Summarize this all in ONE concise paragraph (max 100 words)
-
-Extracted text (truncated):
-{extracted_text}
-"""
-
 def get_audit_prompt(website, file_ids):
     """
     Generate a comprehensive prompt for the insurance audit report
     """
     today = datetime.date.today().strftime("%d %B %Y")
     
-    return f"""You are an expert UK commercial-insurance broker and business
-advisor with over 30 years of experience. Produce a **single, stand-alone HTML document** 
-that follows the JORO framework below.
+    return f"""You are an expert UK commercial insurance broker with over 30 years of experience. 
+    Produce a **single, stand-alone HTML document** that follows the exact structure and formatting 
+    provided in the example below.
 
-━━━━━━━━━━  DESIGN REQUIREMENTS  ━━━━━━━━━━
-• Inject the full <style> block shown at the end of this prompt.
-• Use these heading icon URLs:  
-  • https://storage.googleapis.com/joro-audit-icons/Icon+-+magnifying+glass.png  
-  • https://storage.googleapis.com/joro-audit-icons/Icon+-+Coverage+table.png  
-  • https://storage.googleapis.com/joro-audit-icons/Icon+-+red+flag.png  
-  • https://storage.googleapis.com/joro-audit-icons/Icon+-+test+certificates.png  
-  • https://storage.googleapis.com/joro-audit-icons/Icon+-+benefits.png  
-• Table header background: #709fcc with white text
-• Add preference-button clusters (3 pills) with classes:
-  .pref-btn btn-essential / btn-interested / btn-notInterested
-• Ensure interactive button functionality that adds ✓ when selected and toggles the btn-unselected class
-• Colour tokens:  
-  #4fb57d green (Essential/Recommended), 
-  #f49547 orange (Peace of Mind/Optional), 
-  #ef6460 red (Warnings/Red Flags), 
-  #B22222 deep-red (Critical Issues)
-• Use <h2> for main sections, <h3> for subsections with icons, <h4> for minor headings
+    Your task is to create a complete insurance review for: {website}
 
-━━━━━━━━━━  CONTENT REQUIREMENTS  ━━━━━━━━━━
-1. OVERVIEW
-   • Analyze the business from {website} to determine industry and operation type
-   • Provide a concise overview of standard insurance coverages for this business type
-   • Include typical policies: Public Liability, Product Liability, Stock & Contents, 
-     Employers' Liability, Business Interruption, etc.
-   • Explain WHY each coverage exists (not just what it covers)
-   • Use clear, direct language without jargon or phrases like "plain English"
+    ━━━━━━━━━━  FORMATTING REQUIREMENTS  ━━━━━━━━━━
+    • You MUST follow the exact HTML structure in the example below
+    • Use all provided icon URLs for the section headings exactly as shown
+    • Ensure all CSS styling is included exactly as provided
+    • Make sure preference buttons functionality works with JavaScript
+    • Ensure responsive table formatting with proper column widths
 
-2. COVERAGE TABLE
-   • Create a DETAILED 5-column table:
-     - Coverage Type 
-     - Category (Essential/Peace-of-Mind/Optional)
-     - Client-specific claim scenarios relevant to THIS business
-     - How to claim (timeline & cost expectations)
-     - Annual Cost (estimated range if not in documents)
-   • Add preference buttons under each coverage row to let client mark as:
-     Essential / Interested / Not Interested
+    ━━━━━━━━━━  SECTION ICONS  ━━━━━━━━━━
+    Use these exact image URLs for section icons:
+    • Overview icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb25470b8415a5795ed69/1743762005158/Icon+-+magnifying+glass.png
+    • Coverage table icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2548246ac491eae87ce/1743762005156/Icon+-+Coverage+table.png
+    • Red flags icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2540b0ebe5af8f8b121/1743762005078/Icon+-+red+flag.png
+    • Test certificates icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2547bec2273aed7c754/1743762005181/Icon+-+test+certificates.png
+    • Benefits icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb254dc69af7a4b2ad623/1743762005197/Icon+-+benefits.png
 
-3. RED FLAGS & REAL-LIFE SCENARIOS
-   • Identify potential insurance gaps based on the business type
-   • Provide ACTUAL documented claim examples (successful and unsuccessful)
-   • For each example:
-     - Explain what helped the claim succeed (or why it failed)
-     - Detail the time and financial consequences
-     - Connect directly to the client's business situation
-   • Use real industry examples, not hypotheticals
+    ━━━━━━━━━━  CONTENT REQUIREMENTS  ━━━━━━━━━━
+    1. OVERVIEW
+       • Analyze the business from {website} to determine industry and operation type
+       • Provide a concise overview of standard insurance coverages for this business type
+       • Include typical policies: Public Liability, Product Liability, Stock & Contents, 
+         Employers' Liability, Business Interruption, etc.
+       • Explain WHY each coverage exists (not just what it covers)
+       • Use clear, direct language without jargon
 
-4. RECOMMENDED TESTS & CERTIFICATES BY PRODUCT/SERVICE
-   • Break down the client's products/services into categories
-   • For each category:
-     - List relevant certifications (ISO, BS EN, CE marking, REACH, etc.)
-     - Explain how each certificate strengthens claims
-     - Provide SPECIFIC potential premium savings (e.g., "Up to 10% discount")
-   • Create a table linking product categories to recommended certifications
-   • Include estimated savings percentage for each recommendation
+    2. COVERAGE TABLE
+       • Create a DETAILED 5-column table with exact styling from the example
+       • Columns must be: Coverage Type, Category (Essential/Peace-of-Mind/Optional), 
+         Client-specific claim scenarios, How to claim (timeline & cost expectations), Annual Cost
+       • Add preference buttons under each coverage row with proper styling and functionality
+       • Use color coding exactly as shown in the example
 
-5. BENEFITS OF ADDITIONAL STEPS
-   • Summarize financial benefits (premium reductions, lower excess/deductibles)
-   • Explain operational advantages (faster claims, fewer disputes)
-   • Highlight competitive advantages (market trust, improved reputation)
-   • Show how risk reduction creates long-term value
+    3. RED FLAGS & REAL-LIFE SCENARIOS
+       • Identify potential insurance gaps based on the business type
+       • Provide ACTUAL documented claim examples (both successful and unsuccessful)
+       • For each example, explain what helped the claim succeed or why it failed
+       • Include time and financial consequences
 
-━━━━━━━━━━  METADATA  ━━━━━━━━━━
-• Add report header:  
-  "Joro High Level Insurance Review & Recommendations"  
-  Prepared by JORO  
-  For: <extract organization name from {website}>  
-  Date: {today}
+    4. RECOMMENDED TESTS & CERTIFICATES BY PRODUCT/SERVICE
+       • Break down the client's products/services into categories
+       • For each category, list relevant certifications with styling as shown in the example
+       • Explain how each certificate strengthens claims
+       • Provide SPECIFIC potential premium savings (e.g., "Up to 10% discount")
 
-• When referencing uploaded documents (file IDs: {file_ids}), cite the specific filename
+    5. BENEFITS OF ADDITIONAL STEPS
+       • Summarize financial benefits (premium reductions, lower excess/deductibles)
+       • Explain operational advantages (faster claims, fewer disputes)
+       • Highlight competitive advantages specific to this industry
 
-━━━━━━━━━━  STYLE BLOCK  ━━━━━━━━━━
-<style>
-    body {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    h1, h2, h3, h4 {
-        color: #3a5a7c;
-        margin-top: 1.5em;
-    }
-    
-    h1 {
-        font-size: 28px;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-    
-    h2 {
-        font-size: 24px;
-        border-bottom: 2px solid #709fcc;
-        padding-bottom: 10px;
-    }
-    
-    h3 {
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-    }
-    
-    h3 img {
-        height: 24px;
-        margin-right: 10px;
-    }
-    
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-    }
-    
-    th {
-        background-color: #709fcc;
-        color: white;
-        padding: 10px;
-        text-align: left;
-    }
-    
-    td {
-        padding: 10px;
-        border: 1px solid #ddd;
-    }
-    
-    tr:nth-child(even) {
-        background-color: #f2f7fd;
-    }
-    
-    .highlight-green {
-        color: #4fb57d;
-        font-weight: bold;
-    }
-    
-    .highlight-orange {
-        color: #f49547;
-        font-weight: bold;
-    }
-    
-    .highlight-red {
-        color: #ef6460;
-        font-weight: bold;
-    }
-    
-    .highlight-deep-red {
-        color: #B22222;
-        font-weight: bold;
-    }
-    
-    .metadata {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    
-    .metadata p {
-        margin: 5px 0;
-    }
-    
-    .pref-button-group {
-        display: flex;
-        gap: 10px;
-        margin: 10px 0;
-    }
-    
-    .pref-btn {
-        padding: 5px 15px;
-        border-radius: 20px;
-        border: none;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    
-    .btn-essential {
-        background-color: #4fb57d;
-    }
-    
-    .btn-interested {
-        background-color: #f49547;
-    }
-    
-    .btn-notInterested {
-        background-color: #ef6460;
-    }
-    
-    .btn-unselected {
-        opacity: 0.6;
-    }
-    
-    .section-icon {
-        width: 40px;
-        height: 40px;
-        margin-right: 15px;
-    }
-</style>
+    ━━━━━━━━━━  EXAMPLE HTML TEMPLATE TO FOLLOW EXACTLY  ━━━━━━━━━━
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Joro High Level Insurance Review &amp; Recommendations</title>
+      <style>
+        /* Global Styles – let your site CSS control fonts/colors */
+        body {
+          margin: 20px;
+          line-height: 1.6;
+          font-family: inherit;
+          color: inherit;
+        }
+        h1, h2, h3, h4, h5 {
+          margin-top: 1.2em;
+          margin-bottom: 0.6em;
+          font-weight: inherit;
+          /* Remove forced color so site defaults apply */
+          color: inherit;
+        }
+        p, ul, ol, table {
+          margin-bottom: 1em;
+        }
+        ul, ol {
+          padding-left: 20px;
+        }
 
-<script>
-    // Add event listeners to all preference buttons
-    document.addEventListener('DOMContentLoaded', function() {
-        const prefButtons = document.querySelectorAll('.pref-btn');
-        
-        prefButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Find the button group
-                const group = this.closest('.pref-button-group');
-                
-                // Remove 'selected' class from all buttons in the group
-                group.querySelectorAll('.pref-btn').forEach(btn => {
-                    btn.classList.add('btn-unselected');
-                    // Remove check mark
-                    btn.textContent = btn.textContent.replace(' ✓', '');
+        /* Heading Icon Style – doubled to 48px */
+        .heading-icon {
+          width: 48px;
+          vertical-align: middle;
+          margin-right: 8px;
+        }
+
+        /* Table Styles */
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-bottom: 20px;
+        }
+        table, th, td {
+          border: 1px solid #ddd;
+        }
+        th, td {
+          padding: 6px 8px;
+          text-align: left;
+          vertical-align: top;
+        }
+        /* Updated table header styles */
+        th {
+          background-color: #709fcc;
+          color: #fff;
+        }
+        /* Bold for first two columns in coverage table */
+        table.coverage-table tbody tr td:nth-child(1),
+        table.coverage-table tbody tr td:nth-child(2) {
+          font-weight: bold;
+        }
+        col.group-col1 { width: 15%; }
+        col.group-col2 { width: 30%; }
+        col.group-col3 { width: 25%; }
+        col.group-col4 { width: 25%; }
+        col.group-col5 { width: 5%; }
+
+        /* Category Color Styles & Icons */
+        .dark-red { color: #8B0000; }
+        .mid-red { color: #B22222; }
+        .orange-text { color: #FF4500; }
+        .green-text { color: #008000; }
+        .warning-icon::before { content: "⚠️ "; }
+        .thumbs-up-icon::before { content: "👍 "; }
+        .tick-icon { margin-left: 4px; }
+
+        /* Preference Buttons */
+        .preference-buttons { margin-top: 0.5em; }
+        .pref-btn {
+          display: inline-block;
+          border: none;
+          padding: 6px 14px;
+          margin-right: 4px;
+          border-radius: 9999px;
+          color: #fff;
+          cursor: pointer;
+          font-size: 14px;
+          font-family: inherit;
+          transition: background-color 0.3s ease;
+          line-height: 1.2;
+        }
+        .btn-essential {
+          background-color: #4fb57d;
+        }
+        .btn-interested {
+          background-color: #f49547;
+        }
+        .btn-notInterested {
+          background-color: #ef6460;
+        }
+        .btn-unselected {
+          background-color: #D3D3D3 !important;
+          color: #555 !important;
+        }
+
+        /* Upload-to-profile Button */
+        .upload-profile-btn {
+          display: inline-block;
+          background-color: #4fb57d;
+          color: #fff;
+          padding: 8px 16px;
+          font-size: 14px;
+          border: none;
+          border-radius: 4px;
+          text-transform: uppercase;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          margin-top: 1em;
+          margin-bottom: 1em;
+        }
+        .upload-profile-btn:hover {
+          background-color: #43a16b;
+        }
+      </style>
+    </head>
+    <body>
+      <!-- Header -->
+      <h3>
+        Joro High Level Insurance Review & Recommendations
+      </h3>
+      <p>
+        <strong>Prepared by:</strong> JORO<br>
+        <strong>For:</strong> [COMPANY NAME]<br>
+        <strong>Date:</strong> {today}
+      </p>
+
+      <!-- Section 1: Overview -->
+      <h4>
+        <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb25470b8415a5795ed69/1743762005158/Icon+-+magnifying+glass.png" alt="Overview Icon" class="heading-icon">
+        1. OVERVIEW
+      </h4>
+      [YOUR CONTENT HERE]
+
+      <!-- Section 2: Coverage Table -->
+      <h4>
+        <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2548246ac491eae87ce/1743762005156/Icon+-+Coverage+table.png" alt="Coverage Table Icon" class="heading-icon">
+        2. COVERAGE TABLE
+      </h4>
+      <table class="coverage-table">
+        <colgroup>
+          <col class="group-col1">
+          <col class="group-col2">
+          <col class="group-col3">
+          <col class="group-col4">
+          <col class="group-col5">
+        </colgroup>
+        <thead>
+          <tr>
+            <th><strong>Coverage Type</strong></th>
+            <th><strong>Category</strong></th>
+            <th>Client-specific claim scenarios</th>
+            <th>How to claim (timeline & cost expectations)</th>
+            <th>Annual Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row template: copy and modify for each coverage type -->
+          <tr>
+            <td>Coverage Name</td>
+            <td>
+              <p class="dark-red warning-icon">Category description</p>
+              <p><strong>Preference for new policy</strong></p>
+              <div class="preference-buttons">
+                <button class="pref-btn btn-essential" data-label="Essential" data-selected="false">Essential</button>
+                <button class="pref-btn btn-interested" data-label="Interested / optional" data-selected="false">Interested / optional</button>
+                <button class="pref-btn btn-notInterested" data-label="Not interested" data-selected="false">Not interested</button>
+              </div>
+            </td>
+            <td>Specific claim scenario for this industry</td>
+            <td>Detailed claiming process</td>
+            <td>Annual cost range</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Section 3: Red Flags & Real-Life Scenarios -->
+      <h4>
+        <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2540b0ebe5af8f8b121/1743762005078/Icon+-+red+flag.png" alt="Red Flag Icon" class="heading-icon">
+        3. RED FLAGS &amp; REAL-LIFE SCENARIOS
+      </h4>
+      [YOUR CONTENT HERE]
+
+      <!-- Section 4: Recommended Tests & Certificates -->
+      <h4>
+        <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2547bec2273aed7c754/1743762005181/Icon+-+test+certificates.png" alt="Test Certificates Icon" class="heading-icon">
+        4. RECOMMENDED TESTS &amp; CERTIFICATES
+      </h4>
+      [YOUR CONTENT HERE]
+
+      <!-- Section 5: Benefits -->
+      <h4>
+        <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb254dc69af7a4b2ad623/1743762005197/Icon+-+benefits.png" alt="Benefits Icon" class="heading-icon">
+        5. BENEFITS OF ADDITIONAL STEPS
+      </h4>
+      [YOUR CONTENT HERE]
+
+      <!-- Script for toggling preference buttons -->
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const preferenceGroups = document.querySelectorAll('.preference-buttons');
+
+          preferenceGroups.forEach(group => {
+            const buttons = group.querySelectorAll('.pref-btn');
+            buttons.forEach(btn => {
+              btn.addEventListener('click', function() {
+                // Clear any existing selections in this group
+                buttons.forEach(sibling => {
+                  sibling.classList.remove('btn-unselected');
+                  sibling.innerHTML = sibling.getAttribute('data-label');
+                  sibling.dataset.selected = "false";
                 });
-                
-                // Add 'selected' to the clicked button
-                this.classList.remove('btn-unselected');
-                // Add check mark
-                if (!this.textContent.includes('✓')) {
-                    this.textContent += ' ✓';
-                }
+
+                // Mark clicked button as selected and add tick
+                btn.dataset.selected = "true";
+                btn.innerHTML = btn.getAttribute('data-label') + ' <span class="tick-icon">✓</span>';
+
+                // Grey out the other buttons
+                buttons.forEach(sibling => {
+                  if (sibling !== btn) {
+                    sibling.classList.add('btn-unselected');
+                  }
+                });
+              });
             });
+          });
         });
-    });
-</script>
-"""
+      </script>
+    </body>
+    </html>
+
+    ━━━━━━━━━━  IMPORTANT INSTRUCTIONS  ━━━━━━━━━━
+    • Replace [COMPANY NAME] with the actual company name extracted from the website
+    • Replace [YOUR CONTENT HERE] with industry-specific content as per requirements
+    • Ensure ALL styling, HTML structure, and JavaScript functionality is preserved
+    • Use the exact icon URLs provided
+    • Do not omit any sections or elements from the template
+    • Maintain color coding as per template: #4fb57d green (Essential), #f49547 orange (Peace-of-Mind), #ef6460 red (Optional)
+
+    The final document must be standalone, fully functional and look exactly like the example, but with content specific to the business at {website} and industry.
+    """
