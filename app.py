@@ -443,6 +443,8 @@ def generate_audit():
     file_info = "\n".join([f"- {f}" for f in file_names]) if file_names else "No documents uploaded"
     
     # First, try to get content from the website to determine industry
+    industry_analysis = "Unable to determine specific industry details."
+    
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -451,41 +453,83 @@ def generate_audit():
         r.raise_for_status()
         text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:6000]
         
-        # First, get industry information using Claude
-        industry_prompt = f"""
-        Analyze the following text extracted from the website {website} and determine:
-        1. The precise industry or business sector (be specific)
-        2. The main business activities
-        3. The important risk areas relevant to insurance
-        4. The company name
+        # Create industry analysis prompt
+        industry_prompt = "Analyze the following text extracted from the website " + website + " and determine:\n"
+        industry_prompt += "1. The precise industry or business sector (be specific)\n"
+        industry_prompt += "2. The main business activities\n"
+        industry_prompt += "3. The important risk areas relevant to insurance\n"
+        industry_prompt += "4. The company name\n\n"
+        industry_prompt += "Be very specific about the industry. For example, if it's construction, specify what type (residential, commercial, etc.).\n\n"
+        industry_prompt += "Extracted text:\n" + text
         
-        Be very specific about the industry. For example, if it's construction, specify what type (residential, commercial, etc.).
-        
-        Extracted text:
-        {text}
-        """
-        
+        # Get industry analysis
         industry_analysis = call_claude(industry_prompt, temperature=0.2, max_tokens=600)
-        print(f"Industry analysis: {industry_analysis}")
+        print(f"Industry analysis: {industry_analysis[:100]}...")
         
     except Exception as exc:
         print(f"Industry analysis error: {exc}")
-        industry_analysis = "Unable to determine specific industry details."
     
-    # Get the audit prompt
-    prompt = get_audit_prompt(website, file_ids)
+    # Define the audit prompt
+    AUDIT_PROMPT = f"""
+    You are an expert UK commercial insurance broker with over 30 years of experience. 
     
-    # Add the industry analysis to the prompt
-    full_prompt = f"""
-    {prompt}
+    I need you to create a comprehensive insurance review and recommendation document for:
+    
+    Website: {website}
+    Uploaded insurance documents: {file_info}
     
     Industry analysis based on website content:
     {industry_analysis}
+    
+    Create a complete, professional HTML document with the following structure:
+    
+    1. OVERVIEW
+    - Summarize typical insurance coverage for this specific industry (Public/Product Liability, Stock & Contents, Employers' Liability, Business Interruption, etc.)
+    - Use clear, professional language
+    - Be specific to the type of business/industry identified
+    
+    2. COVERAGE TABLE
+    - Create a 5-column table with:
+      - Coverage Type 
+      - Category (Essential/Peace-of-Mind/Optional)
+      - Industry-specific claim scenarios
+      - How to claim (timeline & cost expectations)
+      - Annual Cost (estimated range)
+    - Make all examples SPECIFIC to the identified industry
+    
+    3. RED FLAGS & REAL-LIFE SCENARIOS
+    - Identify potential insurance gaps based on the specific business type
+    - Provide REAL industry-specific claim examples (both successful and unsuccessful)
+    - For each example, explain what helped the claim succeed or why it failed
+    - Include time and financial consequences
+    
+    4. RECOMMENDED TESTS & CERTIFICATES
+    - List industry-specific certifications relevant to this business type
+    - Explain how each certificate strengthens claims
+    - Include potential premium savings percentages
+    
+    5. BENEFITS OF ADDITIONAL STEPS
+    - Financial benefits (premium reductions, lower excess/deductibles)
+    - Operational advantages (faster claims, fewer disputes)
+    - Competitive advantages specific to this industry
+    
+    FORMAT REQUIREMENTS:
+    - Title: "Joro High Level Insurance Review & Recommendations"
+    - Header info: "Prepared by JORO" + "For: [Company Name]" + "Date: {today}"
+    - Use professional styling with a clean look
+    - Include preference buttons under each coverage item
+    - Table header background color: #709fcc with white text
+    - Color scheme: #4fb57d green, #f49547 orange, #ef6460 red, #B22222 deep-red
+    
+    IMPORTANT: All examples, scenarios, and recommendations MUST be very specific to the exact industry of this business.
+    DO NOT use generic examples. DO NOT mention pets or pet stores unless this is actually a pet-related business.
+    
+    Return ONLY valid HTML (no markdown or code blocks).
     """
     
     try:
         # Call Claude API with a max_tokens value within Claude's limits
-        html = call_claude(full_prompt, temperature=0.4, max_tokens=4000)
+        html = call_claude(AUDIT_PROMPT, temperature=0.4, max_tokens=4000)
         print(f"Successfully generated audit HTML (length: {len(html)})")
         return jsonify(html=html)
     except Exception as exc:
