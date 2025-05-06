@@ -1,3 +1,22 @@
+# prompts.py - Contains all the prompts used in the application
+import datetime
+
+def get_analysis_prompt(website, extracted_text):
+    """
+    Generate a prompt for analyzing a website
+    """
+    return f"""Analyze the business activities found on **{website}** based on the extracted text.
+
+1. Identify the industry/sector 
+2. Determine the main business activities
+3. Note any products or services mentioned
+4. Identify any potential insurance-related risks
+5. Summarize this all in ONE concise paragraph (max 100 words)
+
+Extracted text (truncated):
+{extracted_text}
+"""
+
 def get_audit_prompt(website, file_ids):
     """
     Generate a comprehensive prompt for the insurance audit report
@@ -66,75 +85,75 @@ def get_audit_prompt(website, file_ids):
       <title>Joro High Level Insurance Review &amp; Recommendations</title>
       <style>
         /* Global Styles – let your site CSS control fonts/colors */
-        body {
+        body {{
           margin: 20px;
           line-height: 1.6;
           font-family: inherit;
           color: inherit;
-        }
-        h1, h2, h3, h4, h5 {
+        }}
+        h1, h2, h3, h4, h5 {{
           margin-top: 1.2em;
           margin-bottom: 0.6em;
           font-weight: inherit;
           /* Remove forced color so site defaults apply */
           color: inherit;
-        }
-        p, ul, ol, table {
+        }}
+        p, ul, ol, table {{
           margin-bottom: 1em;
-        }
-        ul, ol {
+        }}
+        ul, ol {{
           padding-left: 20px;
-        }
+        }}
 
         /* Heading Icon Style – doubled to 48px */
-        .heading-icon {
+        .heading-icon {{
           width: 48px;
           vertical-align: middle;
           margin-right: 8px;
-        }
+        }}
 
         /* Table Styles */
-        table {
+        table {{
           border-collapse: collapse;
           width: 100%;
           margin-bottom: 20px;
-        }
-        table, th, td {
+        }}
+        table, th, td {{
           border: 1px solid #ddd;
-        }
-        th, td {
+        }}
+        th, td {{
           padding: 6px 8px;
           text-align: left;
           vertical-align: top;
-        }
+        }}
         /* Updated table header styles */
-        th {
+        th {{
           background-color: #709fcc;
           color: #fff;
-        }
+        }}
         /* Bold for first two columns in coverage table */
         table.coverage-table tbody tr td:nth-child(1),
-        table.coverage-table tbody tr td:nth-child(2) {
+        table.coverage-table tbody tr td:nth-child(2) {{
           font-weight: bold;
-        }
-        col.group-col1 { width: 15%; }
-        col.group-col2 { width: 30%; }
-        col.group-col3 { width: 25%; }
-        col.group-col4 { width: 25%; }
-        col.group-col5 { width: 5%; }
+        }}
+        col.group-col1 {{ width: 15%; }}
+        col.group-col2 {{ width: 30%; }}
+        col.group-col3 {{ width: 25%; }}
+        col.group-col4 {{ width: 25%; }}
+        col.group-col5 {{ width: 5%; }}
 
         /* Category Color Styles & Icons */
-        .dark-red { color: #8B0000; }
-        .mid-red { color: #B22222; }
-        .orange-text { color: #FF4500; }
-        .green-text { color: #008000; }
-        .warning-icon::before { content: "⚠️ "; }
-        .thumbs-up-icon::before { content: "👍 "; }
-        .tick-icon { margin-left: 4px; }
+        .dark-red {{ color: #8B0000; }}
+        .mid-red {{ color: #B22222; }}
+        .orange-text {{ color: #FF4500; }}
+        .green-text {{ color: #008000; }}
+        .warning-icon::before {{ content: "⚠️ "; }}
+        .thumbs-up-icon::before {{ content: "👍 "; }}
+        .tick-icon {{ margin-left: 4px; }}
 
         /* Preference Buttons */
-        .preference-buttons { margin-top: 0.5em; }
-        .pref-btn {
+        .preference-buttons {{ margin-top: 0.5em; }}
+        .pref-btn {{
           display: inline-block;
           border: none;
           padding: 6px 14px;
@@ -146,23 +165,23 @@ def get_audit_prompt(website, file_ids):
           font-family: inherit;
           transition: background-color 0.3s ease;
           line-height: 1.2;
-        }
-        .btn-essential {
+        }}
+        .btn-essential {{
           background-color: #4fb57d;
-        }
-        .btn-interested {
+        }}
+        .btn-interested {{
           background-color: #f49547;
-        }
-        .btn-notInterested {
+        }}
+        .btn-notInterested {{
           background-color: #ef6460;
-        }
-        .btn-unselected {
+        }}
+        .btn-unselected {{
           background-color: #D3D3D3 !important;
           color: #555 !important;
-        }
+        }}
 
         /* Upload-to-profile Button */
-        .upload-profile-btn {
+        .upload-profile-btn {{
           display: inline-block;
           background-color: #4fb57d;
           color: #fff;
@@ -176,10 +195,10 @@ def get_audit_prompt(website, file_ids):
           transition: background-color 0.3s ease;
           margin-top: 1em;
           margin-bottom: 1em;
-        }
-        .upload-profile-btn:hover {
+        }}
+        .upload-profile-btn:hover {{
           background-color: #43a16b;
-        }
+        }}
       </style>
     </head>
     <body>
@@ -265,34 +284,34 @@ def get_audit_prompt(website, file_ids):
 
       <!-- Script for toggling preference buttons -->
       <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {{
           const preferenceGroups = document.querySelectorAll('.preference-buttons');
 
-          preferenceGroups.forEach(group => {
+          preferenceGroups.forEach(group => {{
             const buttons = group.querySelectorAll('.pref-btn');
-            buttons.forEach(btn => {
-              btn.addEventListener('click', function() {
+            buttons.forEach(btn => {{
+              btn.addEventListener('click', function() {{
                 // Clear any existing selections in this group
-                buttons.forEach(sibling => {
+                buttons.forEach(sibling => {{
                   sibling.classList.remove('btn-unselected');
                   sibling.innerHTML = sibling.getAttribute('data-label');
                   sibling.dataset.selected = "false";
-                });
+                }});
 
                 // Mark clicked button as selected and add tick
                 btn.dataset.selected = "true";
                 btn.innerHTML = btn.getAttribute('data-label') + ' <span class="tick-icon">✓</span>';
 
                 // Grey out the other buttons
-                buttons.forEach(sibling => {
-                  if (sibling !== btn) {
+                buttons.forEach(sibling => {{
+                  if (sibling !== btn) {{
                     sibling.classList.add('btn-unselected');
-                  }
-                });
-              });
-            });
-          });
-        });
+                  }}
+                }});
+              }});
+            }});
+          }});
+        }});
       </script>
     </body>
     </html>
