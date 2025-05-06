@@ -470,21 +470,21 @@ def generate_audit():
         print(f"Industry analysis error: {exc}")
     
     # Define the audit prompt
-    AUDIT_PROMPT = f"""
+    AUDIT_PROMPT = """
     You are an expert UK commercial insurance broker with over 30 years of experience. 
     
     I need you to create a comprehensive insurance review and recommendation document for:
     
-    Website: {website}
-    Uploaded insurance documents: {file_info}
+    Website: """ + website + """
+    Uploaded insurance documents: """ + file_info + """
     
     Industry analysis based on website content:
-    {industry_analysis}
+    """ + industry_analysis + """
     
     Create a complete, professional HTML document with the following structure:
     
     1. OVERVIEW
-    - Summarize typical insurance coverage for this specific industry (Public/Product Liability, Stock & Contents, Employers' Liability, Business Interruption, etc.)
+    - Summarize typical insurance coverage for this specific industry (Public/Product Liability, Stock & Contents, Employers Liability, Business Interruption, etc.)
     - Use clear, professional language
     - Be specific to the type of business/industry identified
     
@@ -515,7 +515,7 @@ def generate_audit():
     
     FORMAT REQUIREMENTS:
     - Title: "Joro High Level Insurance Review & Recommendations"
-    - Header info: "Prepared by JORO" + "For: [Company Name]" + "Date: {today}"
+    - Header info: "Prepared by JORO" + "For: [Company Name]" + "Date: """ + today + """"
     - Use professional styling with a clean look
     - Include preference buttons under each coverage item
     - Table header background color: #709fcc with white text
