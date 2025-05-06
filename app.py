@@ -204,7 +204,7 @@ def generate_audit():
     
     try:
         # Call Claude API
-        html = call_claude(prompt, temperature=0.4, max_tokens=4000)
+        html = call_claude(prompt, temperature=0.4, max_tokens=10000)
         print(f"Successfully generated audit HTML (length: {len(html)})")
         return jsonify(html=html)
     except Exception as exc:
