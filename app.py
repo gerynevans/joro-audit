@@ -38,7 +38,7 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
         "content-type": "application/json"
     }
     data = {
-        "model": "claude-3-7-sonnet-20240620",
+        "model": "claude-3-sonnet-20240229",  # Using a stable model version
         "max_tokens": max_tokens,
         "temperature": temperature,
         "messages": [
@@ -47,12 +47,25 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
     }
     
     try:
+        print(f"Sending request to Claude API with prompt length: {len(prompt)}")
         response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json()["content"][0]["text"]
+        print(f"Claude API response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Error response: {response.text}")
+            return f"Error: Claude API returned status code {response.status_code}"
+        
+        result = response.json()
+        
+        # Handle the response structure correctly
+        if "content" in result and len(result["content"]) > 0:
+            return result["content"][0]["text"]
+        else:
+            print(f"Unexpected response structure: {result}")
+            return "Error: Unexpected response format from Claude API"
     except Exception as e:
         print(f"Claude API error: {e}")
-        if response and hasattr(response, 'text'):
+        if 'response' in locals() and hasattr(response, 'text'):
             print(f"Response text: {response.text}")
         raise
 
