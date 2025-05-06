@@ -1,22 +1,3 @@
-# prompts.py - Contains all the prompts used in the application
-import datetime
-
-def get_analysis_prompt(website, extracted_text):
-    """
-    Generate a prompt for analyzing a website
-    """
-    return f"""Analyze the business activities found on **{website}** based on the extracted text.
-
-1. Identify the industry/sector 
-2. Determine the main business activities
-3. Note any products or services mentioned
-4. Identify any potential insurance-related risks
-5. Summarize this all in ONE concise paragraph (max 100 words)
-
-Extracted text (truncated):
-{extracted_text}
-"""
-
 def get_audit_prompt(website, file_ids):
     """
     Generate a comprehensive prompt for the insurance audit report
@@ -24,79 +5,38 @@ def get_audit_prompt(website, file_ids):
     today = datetime.date.today().strftime("%d %B %Y")
     
     return f"""You are an expert UK commercial insurance broker with over 30 years of experience. 
-    Produce a **single, stand-alone HTML document** that follows the exact structure and formatting 
-    provided in the example below.
+    Create an HTML document that EXACTLY matches the formatting and functionality of the example.
 
-    Your task is to create a complete insurance review for: {website}
-
-    ━━━━━━━━━━  FORMATTING REQUIREMENTS  ━━━━━━━━━━
-    • You MUST follow the exact HTML structure in the example below
-    • Use all provided icon URLs for the section headings exactly as shown
-    • Ensure all CSS styling is included exactly as provided
-    • Make sure preference buttons functionality works with JavaScript
-    • Ensure responsive table formatting with proper column widths
-
-    ━━━━━━━━━━  SECTION ICONS  ━━━━━━━━━━
-    Use these exact image URLs for section icons:
-    • Overview icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb25470b8415a5795ed69/1743762005158/Icon+-+magnifying+glass.png
-    • Coverage table icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2548246ac491eae87ce/1743762005156/Icon+-+Coverage+table.png
-    • Red flags icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2540b0ebe5af8f8b121/1743762005078/Icon+-+red+flag.png
-    • Test certificates icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2547bec2273aed7c754/1743762005181/Icon+-+test+certificates.png
-    • Benefits icon: https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb254dc69af7a4b2ad623/1743762005197/Icon+-+benefits.png
-
-    ━━━━━━━━━━  CONTENT REQUIREMENTS  ━━━━━━━━━━
-    1. OVERVIEW
-       • Analyze the business from {website} to determine industry and operation type
-       • Provide a concise overview of standard insurance coverages for this business type
-       • Include typical policies: Public Liability, Product Liability, Stock & Contents, 
-         Employers' Liability, Business Interruption, etc.
-       • Explain WHY each coverage exists (not just what it covers)
-       • Use clear, direct language without jargon
-
-    2. COVERAGE TABLE
-       • Create a DETAILED 5-column table with exact styling from the example
-       • Columns must be: Coverage Type, Category (Essential/Peace-of-Mind/Optional), 
-         Client-specific claim scenarios, How to claim (timeline & cost expectations), Annual Cost
-       • Add preference buttons under each coverage row with proper styling and functionality
-       • Use color coding exactly as shown in the example
-
-    3. RED FLAGS & REAL-LIFE SCENARIOS
-       • Identify potential insurance gaps based on the business type
-       • Provide ACTUAL documented claim examples (both successful and unsuccessful)
-       • For each example, explain what helped the claim succeed or why it failed
-       • Include time and financial consequences
-
-    4. RECOMMENDED TESTS & CERTIFICATES BY PRODUCT/SERVICE
-       • Break down the client's products/services into categories
-       • For each category, list relevant certifications with styling as shown in the example
-       • Explain how each certificate strengthens claims
-       • Provide SPECIFIC potential premium savings (e.g., "Up to 10% discount")
-
-    5. BENEFITS OF ADDITIONAL STEPS
-       • Summarize financial benefits (premium reductions, lower excess/deductibles)
-       • Explain operational advantages (faster claims, fewer disputes)
-       • Highlight competitive advantages specific to this industry
-
-    ━━━━━━━━━━  EXAMPLE HTML TEMPLATE TO FOLLOW EXACTLY  ━━━━━━━━━━
+    Website to analyze: {website}
+    
+    CRITICAL FORMATTING REQUIREMENTS:
+    1. Create a COMPLETE, standalone HTML document with ALL required styling and JavaScript
+    2. Use EXACTLY the same HTML structure, CSS styling, and JavaScript as shown in the example
+    3. Include ALL interactive buttons with working JavaScript for toggling selection
+    4. Use the EXACT same section headings with icons as shown in the example
+    5. Make sure the table formatting matches EXACTLY, with proper columns and styling
+    6. Include a COMPLETE and thorough analysis for ALL sections - don't cut any section short
+    
+    COPY THIS HTML STRUCTURE AND STYLING EXACTLY - DO NOT MODIFY OR SIMPLIFY IT:
+    
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <title>Joro High Level Insurance Review &amp; Recommendations</title>
       <style>
-        /* Global Styles – let your site CSS control fonts/colors */
+        /* Global Styles */
         body {{
           margin: 20px;
           line-height: 1.6;
-          font-family: inherit;
-          color: inherit;
+          font-family: Arial, sans-serif;
+          color: #333;
         }}
         h1, h2, h3, h4, h5 {{
           margin-top: 1.2em;
           margin-bottom: 0.6em;
-          font-weight: inherit;
-          /* Remove forced color so site defaults apply */
-          color: inherit;
+          font-weight: bold;
+          color: #3a5a7c;
         }}
         p, ul, ol, table {{
           margin-bottom: 1em;
@@ -105,7 +45,7 @@ def get_audit_prompt(website, file_ids):
           padding-left: 20px;
         }}
 
-        /* Heading Icon Style – doubled to 48px */
+        /* Heading Icon Style */
         .heading-icon {{
           width: 48px;
           vertical-align: middle;
@@ -126,12 +66,10 @@ def get_audit_prompt(website, file_ids):
           text-align: left;
           vertical-align: top;
         }}
-        /* Updated table header styles */
         th {{
           background-color: #709fcc;
           color: #fff;
         }}
-        /* Bold for first two columns in coverage table */
         table.coverage-table tbody tr td:nth-child(1),
         table.coverage-table tbody tr td:nth-child(2) {{
           font-weight: bold;
@@ -202,7 +140,6 @@ def get_audit_prompt(website, file_ids):
       </style>
     </head>
     <body>
-      <!-- Header -->
       <h3>
         Joro High Level Insurance Review & Recommendations
       </h3>
@@ -212,14 +149,13 @@ def get_audit_prompt(website, file_ids):
         <strong>Date:</strong> {today}
       </p>
 
-      <!-- Section 1: Overview -->
       <h4>
         <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb25470b8415a5795ed69/1743762005158/Icon+-+magnifying+glass.png" alt="Overview Icon" class="heading-icon">
         1. OVERVIEW
       </h4>
-      [YOUR CONTENT HERE]
+      
+      <!-- YOUR OVERVIEW CONTENT WILL GO HERE -->
 
-      <!-- Section 2: Coverage Table -->
       <h4>
         <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2548246ac491eae87ce/1743762005156/Icon+-+Coverage+table.png" alt="Coverage Table Icon" class="heading-icon">
         2. COVERAGE TABLE
@@ -236,53 +172,37 @@ def get_audit_prompt(website, file_ids):
           <tr>
             <th><strong>Coverage Type</strong></th>
             <th><strong>Category</strong></th>
-            <th>Client-specific claim scenarios</th>
+            <th>Industry-specific claim scenarios</th>
             <th>How to claim (timeline & cost expectations)</th>
             <th>Annual Cost</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Row template: copy and modify for each coverage type -->
-          <tr>
-            <td>Coverage Name</td>
-            <td>
-              <p class="dark-red warning-icon">Category description</p>
-              <p><strong>Preference for new policy</strong></p>
-              <div class="preference-buttons">
-                <button class="pref-btn btn-essential" data-label="Essential" data-selected="false">Essential</button>
-                <button class="pref-btn btn-interested" data-label="Interested / optional" data-selected="false">Interested / optional</button>
-                <button class="pref-btn btn-notInterested" data-label="Not interested" data-selected="false">Not interested</button>
-              </div>
-            </td>
-            <td>Specific claim scenario for this industry</td>
-            <td>Detailed claiming process</td>
-            <td>Annual cost range</td>
-          </tr>
+          <!-- COVERAGE ROWS WILL GO HERE -->
         </tbody>
       </table>
 
-      <!-- Section 3: Red Flags & Real-Life Scenarios -->
       <h4>
         <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2540b0ebe5af8f8b121/1743762005078/Icon+-+red+flag.png" alt="Red Flag Icon" class="heading-icon">
         3. RED FLAGS &amp; REAL-LIFE SCENARIOS
       </h4>
-      [YOUR CONTENT HERE]
+      
+      <!-- RED FLAGS CONTENT WILL GO HERE -->
 
-      <!-- Section 4: Recommended Tests & Certificates -->
       <h4>
         <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb2547bec2273aed7c754/1743762005181/Icon+-+test+certificates.png" alt="Test Certificates Icon" class="heading-icon">
         4. RECOMMENDED TESTS &amp; CERTIFICATES
       </h4>
-      [YOUR CONTENT HERE]
+      
+      <!-- CERTIFICATES CONTENT WILL GO HERE -->
 
-      <!-- Section 5: Benefits -->
       <h4>
         <img src="https://static1.squarespace.com/static/67d9cdeade7c0a44db4c187f/t/67efb254dc69af7a4b2ad623/1743762005197/Icon+-+benefits.png" alt="Benefits Icon" class="heading-icon">
         5. BENEFITS OF ADDITIONAL STEPS
       </h4>
-      [YOUR CONTENT HERE]
+      
+      <!-- BENEFITS CONTENT WILL GO HERE -->
 
-      <!-- Script for toggling preference buttons -->
       <script>
         document.addEventListener("DOMContentLoaded", function() {{
           const preferenceGroups = document.querySelectorAll('.preference-buttons');
@@ -293,21 +213,15 @@ def get_audit_prompt(website, file_ids):
               btn.addEventListener('click', function() {{
                 // Clear any existing selections in this group
                 buttons.forEach(sibling => {{
-                  sibling.classList.remove('btn-unselected');
+                  sibling.classList.add('btn-unselected');
                   sibling.innerHTML = sibling.getAttribute('data-label');
                   sibling.dataset.selected = "false";
                 }});
 
                 // Mark clicked button as selected and add tick
-                btn.dataset.selected = "true";
-                btn.innerHTML = btn.getAttribute('data-label') + ' <span class="tick-icon">✓</span>';
-
-                // Grey out the other buttons
-                buttons.forEach(sibling => {{
-                  if (sibling !== btn) {{
-                    sibling.classList.add('btn-unselected');
-                  }}
-                }});
+                this.classList.remove('btn-unselected');
+                this.dataset.selected = "true";
+                this.innerHTML = this.getAttribute('data-label') + ' <span class="tick-icon">✓</span>';
               }});
             }});
           }});
@@ -316,13 +230,30 @@ def get_audit_prompt(website, file_ids):
     </body>
     </html>
 
-    ━━━━━━━━━━  IMPORTANT INSTRUCTIONS  ━━━━━━━━━━
-    • Replace [COMPANY NAME] with the actual company name extracted from the website
-    • Replace [YOUR CONTENT HERE] with industry-specific content as per requirements
-    • Ensure ALL styling, HTML structure, and JavaScript functionality is preserved
-    • Use the exact icon URLs provided
-    • Do not omit any sections or elements from the template
-    • Maintain color coding as per template: #4fb57d green (Essential), #f49547 orange (Peace-of-Mind), #ef6460 red (Optional)
+    FOR EACH COVERAGE TYPE, INCLUDE A TABLE ROW WITH THIS EXACT FORMAT (WITH WORKING BUTTONS):
+    <tr>
+      <td>Coverage Name</td>
+      <td>
+        <p class="dark-red warning-icon">Category description</p>
+        <p><strong>Preference for new policy</strong></p>
+        <div class="preference-buttons">
+          <button class="pref-btn btn-essential" data-label="Essential" data-selected="false">Essential</button>
+          <button class="pref-btn btn-interested" data-label="Interested / optional" data-selected="false">Interested / optional</button>
+          <button class="pref-btn btn-notInterested" data-label="Not interested" data-selected="false">Not interested</button>
+        </div>
+      </td>
+      <td>Specific claim scenario for this industry</td>
+      <td>Detailed claiming process</td>
+      <td>Annual cost range</td>
+    </tr>
 
-    The final document must be standalone, fully functional and look exactly like the example, but with content specific to the business at {website} and industry.
+    YOUR CONTENT SHOULD BE SPECIFIC TO THE {website} BUSINESS AND INCLUDE:
+    
+    1. Detailed overview of insurance needs for the specific industry
+    2. At least 6-10 coverage types with detailed scenarios specific to the business
+    3. Red flags specific to the business with real-life examples
+    4. Detailed certificates and tests applicable to this industry with premium reductions
+    5. Comprehensive benefits section with financial, operational and competitive advantages
+    
+    DO NOT abbreviate or cut short any section. Create a COMPLETE report with ALL sections fully detailed.
     """
