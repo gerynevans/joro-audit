@@ -424,7 +424,7 @@ def get_audit_prompt(website, file_ids):
                 });
             });
         });
-    </script>
+    </script>"""
     """
 
 # ────────── big report
