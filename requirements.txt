@@ -1,7 +1,7 @@
 flask
-openai>=1.0.0  # Updated to use the new OpenAI SDK
 python-dotenv
 gunicorn
 flask-cors
 requests
 beautifulsoup4
+anthropic>=0.5.0
