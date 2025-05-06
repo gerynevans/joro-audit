@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from prompts import get_audit_prompt  # Import just the audit prompt function
 
 # ────────── ENV / PATHS
 load_dotenv()
@@ -31,26 +30,24 @@ def short_id() -> str:
 
 # ────────── Claude API integration
 def call_claude(prompt, temperature=0.3, max_tokens=4000):
-    """Call Claude API with the provided prompt using direct API call"""
+    """Call Claude API with the provided prompt"""
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": CLAUDE_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+    data = {
+        "model": "claude-3-haiku-20240307",  # Using the latest Haiku model
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+    
     try:
         print(f"Sending request to Claude API with prompt length: {len(prompt)}")
-        
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": CLAUDE_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-        }
-        data = {
-            "model": "claude-3-haiku-20240307",  # Using a model that should be available
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ]
-        }
-        
-        print(f"Sending direct API request to Claude with model: {data['model']}")
         response = requests.post(url, headers=headers, json=data)
         print(f"Claude API response status: {response.status_code}")
         
@@ -66,7 +63,6 @@ def call_claude(prompt, temperature=0.3, max_tokens=4000):
         else:
             print(f"Unexpected response structure: {result}")
             return "Error: Unexpected response format from Claude API"
-            
     except Exception as e:
         print(f"Claude API error: {e}")
         if 'response' in locals() and hasattr(response, 'text'):
@@ -130,7 +126,7 @@ def analyse_website():
         print(f"Text extraction error: {exc}")
         return jsonify(error=f"Failed to parse website content: {exc}"), 500
 
-    # Define the prompt directly instead of importing it
+    # Define the prompt for Claude
     prompt = f"""
     Analyze the business activities found on **{website}** based on the extracted text.
     
@@ -187,24 +183,309 @@ def get_uploaded_files(file_ids):
             })
     return files
 
+# ────────── Define get_audit_prompt function here 
+def get_audit_prompt(website, file_ids):
+    """
+    Generate a comprehensive prompt for the insurance audit report
+    """
+    today = datetime.date.today().strftime("%d %B %Y")
+    file_details = get_uploaded_files(file_ids)
+    file_names = [f["filename"] for f in file_details]
+    file_info = "\n".join([f"- {f}" for f in file_names]) if file_names else "No documents uploaded"
+    
+    return f"""
+    You are an expert UK commercial-insurance broker and business
+    advisor with over 30 years of experience. Produce a **single, stand-alone HTML document** 
+    that follows the JORO framework below.
+
+    ━━━━━━━━━━  DESIGN REQUIREMENTS  ━━━━━━━━━━
+    • Inject the full <style> block shown at the end of this prompt.
+    • Use these heading icon URLs:  
+      • https://storage.googleapis.com/joro-audit-icons/Icon+-+magnifying+glass.png  
+      • https://storage.googleapis.com/joro-audit-icons/Icon+-+Coverage+table.png  
+      • https://storage.googleapis.com/joro-audit-icons/Icon+-+red+flag.png  
+      • https://storage.googleapis.com/joro-audit-icons/Icon+-+test+certificates.png  
+      • https://storage.googleapis.com/joro-audit-icons/Icon+-+benefits.png  
+    • Table header background: #709fcc with white text
+    • Add preference-button clusters (3 pills) with classes:
+      .pref-btn btn-essential / btn-interested / btn-notInterested
+    • Ensure interactive button functionality that adds ✓ when selected and toggles the btn-unselected class
+    • Colour tokens:  
+      #4fb57d green (Essential/Recommended), 
+      #f49547 orange (Peace of Mind/Optional), 
+      #ef6460 red (Warnings/Red Flags), 
+      #B22222 deep-red (Critical Issues)
+    • Use <h2> for main sections, <h3> for subsections with icons, <h4> for minor headings
+
+    ━━━━━━━━━━  CONTENT REQUIREMENTS  ━━━━━━━━━━
+    1. OVERVIEW
+       • Analyze the business from {website} to determine industry and operation type
+       • Provide a concise overview of standard insurance coverages for this business type
+       • Include typical policies: Public Liability, Product Liability, Stock & Contents, 
+         Employers' Liability, Business Interruption, etc.
+       • Explain WHY each coverage exists (not just what it covers)
+       • Use clear, direct language without jargon or phrases like "plain English"
+
+    2. COVERAGE TABLE
+       • Create a DETAILED 5-column table:
+         - Coverage Type 
+         - Category (Essential/Peace-of-Mind/Optional)
+         - Client-specific claim scenarios relevant to THIS business
+         - How to claim (timeline & cost expectations)
+         - Annual Cost (estimated range if not in documents)
+       • Add preference buttons under each coverage row to let client mark as:
+         Essential / Interested / Not Interested
+
+    3. RED FLAGS & REAL-LIFE SCENARIOS
+       • Identify potential insurance gaps based on the business type
+       • Provide ACTUAL documented claim examples (successful and unsuccessful)
+       • For each example:
+         - Explain what helped the claim succeed (or why it failed)
+         - Detail the time and financial consequences
+         - Connect directly to the client's business situation
+       • Use real industry examples, not hypotheticals
+
+    4. RECOMMENDED TESTS & CERTIFICATES BY PRODUCT/SERVICE
+       • Break down the client's products/services into categories
+       • For each category:
+         - List relevant certifications (ISO, BS EN, CE marking, REACH, etc.)
+         - Explain how each certificate strengthens claims
+         - Provide SPECIFIC potential premium savings (e.g., "Up to 10% discount")
+       • Create a table linking product categories to recommended certifications
+       • Include estimated savings percentage for each recommendation
+
+    5. BENEFITS OF ADDITIONAL STEPS
+       • Summarize financial benefits (premium reductions, lower excess/deductibles)
+       • Explain operational advantages (faster claims, fewer disputes)
+       • Highlight competitive advantages (market trust, improved reputation)
+       • Show how risk reduction creates long-term value
+
+    ━━━━━━━━━━  METADATA  ━━━━━━━━━━
+    • Add report header:  
+      "Joro High Level Insurance Review & Recommendations"  
+      Prepared by JORO  
+      For: <extract organization name from {website}>  
+      Date: {today}
+
+    • When referencing uploaded documents, cite the specific filename
+    • Uploaded documents: {file_info}
+
+    ━━━━━━━━━━  STYLE BLOCK  ━━━━━━━━━━
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1, h2, h3, h4 {
+            color: #3a5a7c;
+            margin-top: 1.5em;
+        }
+        
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        h2 {
+            font-size: 24px;
+            border-bottom: 2px solid #709fcc;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        h3 img {
+            height: 24px;
+            margin-right: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th {
+            background-color: #709fcc;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f7fd;
+        }
+        
+        .highlight-green {
+            color: #4fb57d;
+            font-weight: bold;
+        }
+        
+        .highlight-orange {
+            color: #f49547;
+            font-weight: bold;
+        }
+        
+        .highlight-red {
+            color: #ef6460;
+            font-weight: bold;
+        }
+        
+        .highlight-deep-red {
+            color: #B22222;
+            font-weight: bold;
+        }
+        
+        .metadata {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .metadata p {
+            margin: 5px 0;
+        }
+        
+        .pref-button-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .pref-btn {
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-essential {
+            background-color: #4fb57d;
+        }
+        
+        .btn-interested {
+            background-color: #f49547;
+        }
+        
+        .btn-notInterested {
+            background-color: #ef6460;
+        }
+        
+        .btn-unselected {
+            opacity: 0.6;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+        }
+    </style>
+
+    <script>
+        // Add event listeners to all preference buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const prefButtons = document.querySelectorAll('.pref-btn');
+            
+            prefButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Find the button group
+                    const group = this.closest('.pref-button-group');
+                    
+                    // Remove 'selected' class from all buttons in the group
+                    group.querySelectorAll('.pref-btn').forEach(btn => {
+                        btn.classList.add('btn-unselected');
+                        // Remove check mark
+                        btn.textContent = btn.textContent.replace(' ✓', '');
+                    });
+                    
+                    // Add 'selected' to the clicked button
+                    this.classList.remove('btn-unselected');
+                    // Add check mark
+                    if (!this.textContent.includes('✓')) {
+                        this.textContent += ' ✓';
+                    }
+                });
+            });
+        });
+    </script>
+    """
+
 # ────────── big report
 @app.post("/api/generate-audit")
 def generate_audit():
     data = request.get_json(force=True)
     website = data.get("website", "").strip()
     file_ids = data.get("files", [])            # may be []
+    today = datetime.date.today().strftime("%d %B %Y")
     
     print(f"Generating audit for website: {website} with file IDs: {file_ids}")
     
     # Get file details
     file_details = get_uploaded_files(file_ids)
+    file_names = [f["filename"] for f in file_details]
+    file_info = "\n".join([f"- {f}" for f in file_names]) if file_names else "No documents uploaded"
     
-    # Get the audit prompt from prompts.py
+    # First, try to get content from the website to determine industry
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        r = requests.get(website, timeout=20, headers=headers)
+        r.raise_for_status()
+        text = BeautifulSoup(r.text, "html.parser").get_text(" ", strip=True)[:6000]
+        
+        # First, get industry information using Claude
+        industry_prompt = f"""
+        Analyze the following text extracted from the website {website} and determine:
+        1. The precise industry or business sector (be specific)
+        2. The main business activities
+        3. The important risk areas relevant to insurance
+        4. The company name
+        
+        Be very specific about the industry. For example, if it's construction, specify what type (residential, commercial, etc.).
+        
+        Extracted text:
+        {text}
+        """
+        
+        industry_analysis = call_claude(industry_prompt, temperature=0.2, max_tokens=600)
+        print(f"Industry analysis: {industry_analysis}")
+        
+    except Exception as exc:
+        print(f"Industry analysis error: {exc}")
+        industry_analysis = "Unable to determine specific industry details."
+    
+    # Get the audit prompt
     prompt = get_audit_prompt(website, file_ids)
     
+    # Add the industry analysis to the prompt
+    full_prompt = f"""
+    {prompt}
+    
+    Industry analysis based on website content:
+    {industry_analysis}
+    """
+    
     try:
-        # Call Claude API
-        html = call_claude(prompt, temperature=0.4, max_tokens=10000)
+        # Call Claude API with a max_tokens value within Claude's limits
+        html = call_claude(full_prompt, temperature=0.4, max_tokens=4000)
         print(f"Successfully generated audit HTML (length: {len(html)})")
         return jsonify(html=html)
     except Exception as exc:
